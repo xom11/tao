@@ -47,7 +47,9 @@ def get_subnet(netuid: int):
             SELECT DISTINCT ON (netuid)
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
                 s.emission_value, s.tempo, s.difficulty, s.immunity_period,
-                s.alpha_price_tao, s.collected_at,
+                s.alpha_price_tao,
+                s.description, s.subnet_url, s.github_repo, s.discord, s.logo_url, s.subnet_contact,
+                s.collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
@@ -70,8 +72,14 @@ def get_subnet(netuid: int):
         immunity_period=row[8],
         immunity_period_human=blocks_to_human(row[8]),
         alpha_price_tao=row[9],
-        collected_at=row[10],
-        is_my_subnet=row[11],
+        description=row[10],
+        subnet_url=row[11],
+        github_repo=row[12],
+        discord=row[13],
+        logo_url=row[14],
+        subnet_contact=row[15],
+        collected_at=row[16],
+        is_my_subnet=row[17],
     )
 
 

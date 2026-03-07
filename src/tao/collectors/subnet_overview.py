@@ -15,8 +15,8 @@ class SubnetOverviewCollector(BaseCollector):
         return "subnet_overview"
 
     def collect(self) -> list[dict]:
-        # all_subnets(): có subnet_name, symbol, price (dTAO)
-        # get_all_subnets_info(): có max_n, difficulty, immunity_period
+        # all_subnets(): subnet_name, symbol, price, subnet_identity (dTAO)
+        # get_all_subnets_info(): max_n, difficulty, immunity_period
         all_info = {
             int(s.netuid): s
             for s in self.subtensor.get_all_subnets_info()
@@ -26,6 +26,8 @@ class SubnetOverviewCollector(BaseCollector):
         for s in self.subtensor.all_subnets():
             netuid = int(s.netuid)
             info = all_info.get(netuid)
+            ident = s.subnet_identity  # None nếu subnet chưa set identity
+
             rows.append({
                 "netuid": netuid,
                 "subnet_name": s.subnet_name or None,
@@ -37,6 +39,13 @@ class SubnetOverviewCollector(BaseCollector):
                 "difficulty": int(info.difficulty) if info else None,
                 "immunity_period": int(info.immunity_period) if info else None,
                 "alpha_price_tao": float(s.price) if s.price is not None else None,
+                # identity fields — None nếu subnet không có identity
+                "description": ident.description or None if ident else None,
+                "subnet_url": ident.subnet_url or None if ident else None,
+                "github_repo": ident.github_repo or None if ident else None,
+                "discord": ident.discord or None if ident else None,
+                "logo_url": ident.logo_url or None if ident else None,
+                "subnet_contact": ident.subnet_contact or None if ident else None,
             })
         return rows
 

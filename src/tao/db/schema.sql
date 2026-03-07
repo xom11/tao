@@ -19,8 +19,15 @@ CREATE TABLE IF NOT EXISTS subnet_overview_snapshots (
     emission_value  NUMERIC,
     tempo           INTEGER,
     difficulty      NUMERIC,
-    immunity_period INTEGER,        -- đơn vị: blocks (1 block ≈ 12s)
+    immunity_period INTEGER,            -- đơn vị: blocks (1 block ≈ 12s)
     alpha_price_tao DOUBLE PRECISION,  -- giá alpha token tính bằng TAO (dTAO)
+    -- subnet identity (optional, set bởi owner)
+    description     TEXT,
+    subnet_url      TEXT,
+    github_repo     TEXT,
+    discord         TEXT,
+    logo_url        TEXT,
+    subnet_contact  TEXT,
     collected_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

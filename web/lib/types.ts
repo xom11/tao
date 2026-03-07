@@ -32,6 +32,12 @@ export interface SubnetDetail extends SubnetOverview {
   difficulty: number | null;
   immunity_period: number | null;
   immunity_period_human: string | null;
+  description: string | null;
+  subnet_url: string | null;
+  github_repo: string | null;
+  discord: string | null;
+  logo_url: string | null;
+  subnet_contact: string | null;
 }
 
 export interface Neuron {

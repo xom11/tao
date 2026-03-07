@@ -61,6 +61,12 @@ class SubnetDetail(BaseModel):
     immunity_period: int | None
     immunity_period_human: str | None
     alpha_price_tao: float | None
+    description: str | None
+    subnet_url: str | None
+    github_repo: str | None
+    discord: str | None
+    logo_url: str | None
+    subnet_contact: str | None
     collected_at: datetime
     is_my_subnet: bool
 
