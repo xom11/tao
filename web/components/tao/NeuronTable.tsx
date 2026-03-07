@@ -20,6 +20,7 @@ export function NeuronTable({ neurons }: { neurons: Neuron[] }) {
         <TableRow>
           <TableHead className="text-right">UID</TableHead>
           <TableHead>Hotkey</TableHead>
+          <TableHead>Coldkey</TableHead>
           <TableHead className="text-right">Stake (TAO)</TableHead>
           <TableHead className="text-right">Incentive</TableHead>
           <TableHead className="text-right">Dividends</TableHead>
@@ -33,6 +34,7 @@ export function NeuronTable({ neurons }: { neurons: Neuron[] }) {
           <TableRow key={n.uid}>
             <TableCell className="text-right">{n.uid}</TableCell>
             <TableCell className="font-mono text-xs max-w-xs truncate">{n.hotkey}</TableCell>
+            <TableCell className="font-mono text-xs max-w-xs truncate">{n.coldkey}</TableCell>
             <TableCell className="text-right">{f4(n.stake_tao)}</TableCell>
             <TableCell className="text-right">{f4(n.incentive)}</TableCell>
             <TableCell className="text-right">{f4(n.dividends)}</TableCell>

@@ -12,11 +12,15 @@ CREATE TABLE IF NOT EXISTS coldkey_balances (
 CREATE TABLE IF NOT EXISTS subnet_overview_snapshots (
     id              BIGSERIAL PRIMARY KEY,
     netuid          INTEGER     NOT NULL,
+    subnet_name     TEXT,
+    symbol          TEXT,
     owner           TEXT,
     max_neurons     INTEGER,
     emission_value  NUMERIC,
     tempo           INTEGER,
     difficulty      NUMERIC,
+    immunity_period INTEGER,        -- đơn vị: blocks (1 block ≈ 12s)
+    alpha_price_tao DOUBLE PRECISION,  -- giá alpha token tính bằng TAO (dTAO)
     collected_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

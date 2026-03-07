@@ -16,7 +16,8 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
       <TableHeader>
         <TableRow>
           <TableHead>NetUID</TableHead>
-          <TableHead>Owner</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead className="text-right">Alpha Price (τ)</TableHead>
           <TableHead className="text-right">Max Neurons</TableHead>
           <TableHead className="text-right">Emission</TableHead>
           <TableHead className="text-right">Tempo</TableHead>
@@ -34,7 +35,15 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
                 <Badge variant="outline" className="ml-2 text-xs">⭐ mine</Badge>
               )}
             </TableCell>
-            <TableCell className="font-mono text-xs max-w-xs truncate">{s.owner ?? "—"}</TableCell>
+            <TableCell>
+              <span className="font-medium">{s.subnet_name ?? "—"}</span>
+              {s.symbol && (
+                <span className="ml-1 text-xs text-muted-foreground">{s.symbol}</span>
+              )}
+            </TableCell>
+            <TableCell className="text-right font-mono text-sm">
+              {s.alpha_price_tao != null ? s.alpha_price_tao.toFixed(6) : "—"}
+            </TableCell>
             <TableCell className="text-right">{s.max_neurons ?? "—"}</TableCell>
             <TableCell className="text-right">{s.emission_value?.toFixed(4) ?? "—"}</TableCell>
             <TableCell className="text-right">{s.tempo ?? "—"}</TableCell>

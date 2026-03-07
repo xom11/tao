@@ -21,21 +21,46 @@ class CollectionRun(BaseModel):
 
 class SubnetOverview(BaseModel):
     netuid: int
+    subnet_name: str | None
+    symbol: str | None
     owner: str | None
     max_neurons: int | None
     emission_value: float | None
     tempo: int | None
+    alpha_price_tao: float | None
     collected_at: datetime
     is_my_subnet: bool
 
 
+def blocks_to_human(blocks: int | None) -> str | None:
+    if blocks is None:
+        return None
+    seconds = blocks * 12
+    d, rem = divmod(seconds, 86400)
+    h, rem = divmod(rem, 3600)
+    m = rem // 60
+    parts = []
+    if d:
+        parts.append(f"{d}d")
+    if h:
+        parts.append(f"{h}h")
+    if m:
+        parts.append(f"{m}m")
+    return " ".join(parts) or "0m"
+
+
 class SubnetDetail(BaseModel):
     netuid: int
+    subnet_name: str | None
+    symbol: str | None
     owner: str | None
     max_neurons: int | None
     emission_value: float | None
     tempo: int | None
     difficulty: float | None
+    immunity_period: int | None
+    immunity_period_human: str | None
+    alpha_price_tao: float | None
     collected_at: datetime
     is_my_subnet: bool
 

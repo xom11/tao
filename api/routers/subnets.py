@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from tao.db.connection import get_pool
 from tao.db.queries import my_subnets as my_subnets_q
-from api.models import SubnetOverview, SubnetDetail, MySubnet, NotesUpdate
+from api.models import SubnetOverview, SubnetDetail, MySubnet, NotesUpdate, blocks_to_human
 
 router = APIRouter()
 
@@ -13,7 +13,8 @@ def list_subnets():
         rows = conn.execute(
             """
             SELECT DISTINCT ON (netuid)
-                s.netuid, s.owner, s.max_neurons, s.emission_value, s.tempo, s.collected_at,
+                s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
+                s.emission_value, s.tempo, s.alpha_price_tao, s.collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
@@ -23,12 +24,15 @@ def list_subnets():
     return [
         SubnetOverview(
             netuid=r[0],
-            owner=r[1],
-            max_neurons=r[2],
-            emission_value=r[3],
-            tempo=r[4],
-            collected_at=r[5],
-            is_my_subnet=r[6],
+            subnet_name=r[1],
+            symbol=r[2],
+            owner=r[3],
+            max_neurons=r[4],
+            emission_value=r[5],
+            tempo=r[6],
+            alpha_price_tao=r[7],
+            collected_at=r[8],
+            is_my_subnet=r[9],
         )
         for r in rows
     ]
@@ -41,7 +45,9 @@ def get_subnet(netuid: int):
         row = conn.execute(
             """
             SELECT DISTINCT ON (netuid)
-                s.netuid, s.owner, s.max_neurons, s.emission_value, s.tempo, s.difficulty, s.collected_at,
+                s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
+                s.emission_value, s.tempo, s.difficulty, s.immunity_period,
+                s.alpha_price_tao, s.collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
@@ -54,13 +60,18 @@ def get_subnet(netuid: int):
         raise HTTPException(status_code=404, detail="Subnet not found")
     return SubnetDetail(
         netuid=row[0],
-        owner=row[1],
-        max_neurons=row[2],
-        emission_value=row[3],
-        tempo=row[4],
-        difficulty=row[5],
-        collected_at=row[6],
-        is_my_subnet=row[7],
+        subnet_name=row[1],
+        symbol=row[2],
+        owner=row[3],
+        max_neurons=row[4],
+        emission_value=row[5],
+        tempo=row[6],
+        difficulty=row[7],
+        immunity_period=row[8],
+        immunity_period_human=blocks_to_human(row[8]),
+        alpha_price_tao=row[9],
+        collected_at=row[10],
+        is_my_subnet=row[11],
     )
 
 

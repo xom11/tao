@@ -17,16 +17,21 @@ export interface CollectionRun {
 
 export interface SubnetOverview {
   netuid: number;
+  subnet_name: string | null;
+  symbol: string | null;
   owner: string | null;
   max_neurons: number | null;
   emission_value: number | null;
   tempo: number | null;
+  alpha_price_tao: number | null;
   collected_at: string;
   is_my_subnet: boolean;
 }
 
 export interface SubnetDetail extends SubnetOverview {
   difficulty: number | null;
+  immunity_period: number | null;
+  immunity_period_human: string | null;
 }
 
 export interface Neuron {
