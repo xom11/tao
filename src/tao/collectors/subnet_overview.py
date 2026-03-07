@@ -34,7 +34,7 @@ class SubnetOverviewCollector(BaseCollector):
                 "symbol": s.symbol or None,
                 "owner": info.owner_ss58 if info else None,
                 "max_neurons": int(info.max_n) if info else None,
-                "emission_value": int(info.emission_value) if info else None,
+                "emission_value": float(s.tao_in_emission) * 2,  # total emission: tao_in + alpha_in (quy TAO) = 2 × tao_in
                 "tempo": int(s.tempo),
                 "difficulty": int(info.difficulty) if info else None,
                 "immunity_period": int(info.immunity_period) if info else None,

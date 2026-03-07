@@ -51,6 +51,7 @@ export interface Neuron {
   dividends: number | null;
   emission_tao: number | null;
   active: boolean | null;
+  role: string | null;
   collected_at: string;
 }
 

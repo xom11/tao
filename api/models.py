@@ -82,6 +82,7 @@ class Neuron(BaseModel):
     dividends: float | None
     emission_tao: float | None
     active: bool | None
+    role: str | None
     collected_at: datetime
 
 

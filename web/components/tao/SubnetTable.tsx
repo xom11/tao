@@ -45,7 +45,9 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
               {s.alpha_price_tao != null ? s.alpha_price_tao.toFixed(6) : "—"}
             </TableCell>
             <TableCell className="text-right">{s.max_neurons ?? "—"}</TableCell>
-            <TableCell className="text-right">{s.emission_value?.toFixed(4) ?? "—"}</TableCell>
+            <TableCell className="text-right">
+              {s.emission_value != null ? `${(s.emission_value * 100).toFixed(2)}%` : "—"}
+            </TableCell>
             <TableCell className="text-right">{s.tempo ?? "—"}</TableCell>
             <TableCell className="text-xs text-muted-foreground">
               {new Date(s.collected_at).toLocaleString()}

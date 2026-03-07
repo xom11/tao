@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS subnet_overview_snapshots (
     symbol          TEXT,
     owner           TEXT,
     max_neurons     INTEGER,
-    emission_value  NUMERIC,
+    emission_value  DOUBLE PRECISION,  -- tao_in_emission: TAO/block vào subnet pool
     tempo           INTEGER,
     difficulty      NUMERIC,
     immunity_period INTEGER,            -- đơn vị: blocks (1 block ≈ 12s)
@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS metagraph_snapshots (
     dividends       DOUBLE PRECISION,
     emission_tao    NUMERIC(20, 9),
     active          BOOLEAN,
+    role            TEXT,           -- 'validator' | 'miner' (dựa trên validator_permit)
     collected_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

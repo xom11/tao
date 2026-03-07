@@ -95,7 +95,11 @@ export default async function SubnetDetailPage({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Emission</CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{subnet.emission_value?.toFixed(4) ?? "—"}</p></CardContent>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {subnet.emission_value != null ? `${(subnet.emission_value * 100).toFixed(2)}%` : "—"}
+            </p>
+          </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">

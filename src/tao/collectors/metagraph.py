@@ -32,6 +32,7 @@ class MetagraphCollector(BaseCollector):
                 "dividends": float(meta.dividends[uid]),
                 "emission_tao": float(meta.emission[uid]),
                 "active": bool(meta.active[uid]),
+                "role": "validator" if bool(meta.validator_permit[uid]) else "miner",
             })
         return rows
 

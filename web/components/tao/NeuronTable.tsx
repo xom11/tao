@@ -27,6 +27,7 @@ export function NeuronTable({ neurons }: { neurons: Neuron[] }) {
           <TableHead className="text-right">Emission</TableHead>
           <TableHead className="text-right">Trust</TableHead>
           <TableHead>Active</TableHead>
+          <TableHead>Role</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -46,6 +47,13 @@ export function NeuronTable({ neurons }: { neurons: Neuron[] }) {
                   {n.active ? "yes" : "no"}
                 </Badge>
               )}
+            </TableCell>
+            <TableCell>
+              {n.role === "validator" ? (
+                <Badge variant="default">V</Badge>
+              ) : n.role === "miner" ? (
+                <Badge variant="outline">M</Badge>
+              ) : "—"}
             </TableCell>
           </TableRow>
         ))}
