@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS metagraph_snapshots (
     hotkey          TEXT,
     coldkey         TEXT,
     stake_tao       NUMERIC(20, 9),
-    trust           DOUBLE PRECISION,
+    validator_trust DOUBLE PRECISION,
     consensus       DOUBLE PRECISION,
     incentive       DOUBLE PRECISION,
     dividends       DOUBLE PRECISION,

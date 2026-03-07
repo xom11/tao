@@ -17,10 +17,10 @@ class SubnetOverviewCollector(BaseCollector):
     def collect(self) -> list[dict]:
         subnets = self.subtensor.get_all_subnets_info()
         rows = []
-        for netuid, info in subnets:
+        for info in subnets:
             rows.append({
-                "netuid": int(netuid),
-                "owner": getattr(info, "owner_ss58", None),
+                "netuid": int(info.netuid),
+                "owner": info.owner_ss58,
                 "max_neurons": int(info.max_n),
                 "emission_value": int(info.emission_value),
                 "tempo": int(info.tempo),

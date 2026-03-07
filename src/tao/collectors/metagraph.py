@@ -4,9 +4,6 @@ from psycopg_pool import ConnectionPool
 from tao.collectors.base import BaseCollector
 from tao.db.queries import metagraph as metagraph_db
 
-RAO_PER_TAO = 1_000_000_000
-
-
 class MetagraphCollector(BaseCollector):
     def __init__(self, subtensor: bt.Subtensor, pool: ConnectionPool, netuid: int) -> None:
         super().__init__(pool)
@@ -22,21 +19,18 @@ class MetagraphCollector(BaseCollector):
         rows = []
         for uid in meta.uids:
             uid = int(uid)
-            # stake is a Balance object — .tao gives TAO float
-            stake_tao = float(meta.stake[uid])
-            # emission is in rao — convert to TAO
-            emission_tao = float(meta.emission[uid]) / RAO_PER_TAO
+            # SDK returns stake and emission already in TAO (float32)
             rows.append({
                 "netuid": self.netuid,
                 "uid": uid,
                 "hotkey": meta.hotkeys[uid],
                 "coldkey": meta.coldkeys[uid],
-                "stake_tao": stake_tao,
-                "trust": float(meta.trust[uid]),
+                "stake_tao": float(meta.stake[uid]),
+                "validator_trust": float(meta.validator_trust[uid]),
                 "consensus": float(meta.consensus[uid]),
                 "incentive": float(meta.incentive[uid]),
                 "dividends": float(meta.dividends[uid]),
-                "emission_tao": emission_tao,
+                "emission_tao": float(meta.emission[uid]),
                 "active": bool(meta.active[uid]),
             })
         return rows
