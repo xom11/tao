@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import {
   Table,
@@ -10,22 +13,49 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { SubnetOverview } from "@/lib/types";
 
+type SortKey = "netuid" | "alpha_price_tao" | "max_neurons" | "emission_value" | "tempo";
+type Dir = "asc" | "desc";
+
+function SortIcon({ col, sort }: { col: SortKey; sort: { key: SortKey; dir: Dir } }) {
+  if (sort.key !== col) return <span className="ml-1 opacity-20">↕</span>;
+  return <span className="ml-1">{sort.dir === "asc" ? "↑" : "↓"}</span>;
+}
+
 export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
+  const [sort, setSort] = useState<{ key: SortKey; dir: Dir }>({ key: "netuid", dir: "asc" });
+
+  function toggle(key: SortKey) {
+    setSort((s) => s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
+  }
+
+  const sorted = [...subnets].sort((a, b) => {
+    const mul = sort.dir === "asc" ? 1 : -1;
+    const av = (a[sort.key] as number | null) ?? -Infinity;
+    const bv = (b[sort.key] as number | null) ?? -Infinity;
+    return mul * (av < bv ? -1 : av > bv ? 1 : 0);
+  });
+
+  const th = (key: SortKey, label: string, className = "") => (
+    <TableHead className={`cursor-pointer select-none hover:text-foreground ${className}`} onClick={() => toggle(key)}>
+      {label}<SortIcon col={key} sort={sort} />
+    </TableHead>
+  );
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>NetUID</TableHead>
+          {th("netuid", "NetUID")}
           <TableHead>Name</TableHead>
-          <TableHead className="text-right">Alpha Price (τ)</TableHead>
-          <TableHead className="text-right">Max Neurons</TableHead>
-          <TableHead className="text-right">Emission</TableHead>
-          <TableHead className="text-right">Tempo</TableHead>
+          {th("alpha_price_tao", "Alpha Price (τ)", "text-right")}
+          {th("max_neurons", "Max Neurons", "text-right")}
+          {th("emission_value", "Emission", "text-right")}
+          {th("tempo", "Tempo", "text-right")}
           <TableHead>Updated</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {subnets.map((s) => (
+        {sorted.map((s) => (
           <TableRow key={s.netuid}>
             <TableCell>
               <Link href={`/subnets/${s.netuid}`} className="font-medium hover:underline">

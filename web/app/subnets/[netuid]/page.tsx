@@ -118,15 +118,19 @@ export default async function SubnetDetailPage({
             </p>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="text-xs text-muted-foreground">
-        Owner: <span className="font-mono">{subnet.owner ?? "—"}</span>
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Owner</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-mono text-sm break-all">{subnet.owner ?? "—"}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div>
         <h2 className="text-lg font-semibold mb-3">Top Neurons by Stake</h2>
-        <NeuronTable neurons={neurons} />
+        <NeuronTable neurons={neurons} tempo={subnet.tempo ?? 100} />
       </div>
     </div>
   );
