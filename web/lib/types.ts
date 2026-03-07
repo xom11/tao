@@ -24,8 +24,15 @@ export interface SubnetOverview {
   emission_value: number | null;
   tempo: number | null;
   alpha_price_tao: number | null;
+  miner_daily_tao: number | null;
   collected_at: string;
   is_my_subnet: boolean;
+}
+
+export interface SubnetHistoryPoint {
+  collected_at: string;
+  emission_pct: number | null;
+  alpha_price_tao: number | null;
 }
 
 export interface SubnetDetail extends SubnetOverview {
@@ -50,6 +57,7 @@ export interface Neuron {
   incentive: number | null;
   dividends: number | null;
   emission_tao: number | null;
+  daily_tao: number | null;
   active: boolean | null;
   role: string | null;
   collected_at: string;

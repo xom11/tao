@@ -3,6 +3,7 @@ import type {
   CollectionRun,
   SubnetOverview,
   SubnetDetail,
+  SubnetHistoryPoint,
   Neuron,
   MySubnet,
   Balance,
@@ -22,6 +23,7 @@ export const api = {
   subnets: () => get<SubnetOverview[]>("/api/subnets"),
   subnet: (netuid: number) => get<SubnetDetail>(`/api/subnets/${netuid}`),
   neurons: (netuid: number) => get<Neuron[]>(`/api/subnets/${netuid}/neurons`),
+  subnetHistory: (netuid: number) => get<SubnetHistoryPoint[]>(`/api/subnets/${netuid}/history?days=90`, 0),
   mySubnets: () => get<MySubnet[]>("/api/my-subnets"),
   balances: () => get<Balance[]>("/api/balances"),
 

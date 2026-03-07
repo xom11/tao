@@ -19,9 +19,10 @@ type SortKey = "uid" | "stake_tao" | "incentive" | "dividends" | "emission_tao" 
 type Dir = "asc" | "desc";
 type RoleFilter = "all" | "validator" | "miner";
 
-function dailyTao(emission: number | null, tempo: number): number {
-  if (emission == null || tempo === 0) return 0;
-  return (emission / tempo) * BLOCKS_PER_DAY;
+function dailyTao(n: Neuron, tempo: number): number {
+  if (n.daily_tao != null) return n.daily_tao;
+  if (n.emission_tao == null || tempo === 0) return 0;
+  return (n.emission_tao / tempo) * BLOCKS_PER_DAY;
 }
 
 function fTao(v: number) {
@@ -51,14 +52,16 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
 
   const validators = neurons.filter((n) => n.role === "validator");
   const miners = neurons.filter((n) => n.role === "miner");
-  const validatorDaily = validators.reduce((s, n) => s + dailyTao(n.emission_tao, tempo), 0);
-  const minerDaily = miners.reduce((s, n) => s + dailyTao(n.emission_tao, tempo), 0);
+  const validatorDaily = validators.reduce((s, n) => s + dailyTao(n, tempo), 0);
+  const minerDaily = miners.reduce((s, n) => s + dailyTao(n, tempo), 0);
+  const validatorsEarning = validators.filter((n) => dailyTao(n, tempo) > 0).length;
+  const minersEarning = miners.filter((n) => dailyTao(n, tempo) > 0).length;
 
   const filtered = roleFilter === "all" ? neurons : neurons.filter((n) => n.role === roleFilter);
 
   const sorted = [...filtered].sort((a, b) => {
     const mul = sort.dir === "asc" ? 1 : -1;
-    if (sort.key === "daily_tao") return mul * (dailyTao(a.emission_tao, tempo) - dailyTao(b.emission_tao, tempo));
+    if (sort.key === "daily_tao") return mul * (dailyTao(a, tempo) - dailyTao(b, tempo));
     const av = (a[sort.key] as number | null) ?? -Infinity;
     const bv = (b[sort.key] as number | null) ?? -Infinity;
     return mul * (av < bv ? -1 : av > bv ? 1 : 0);
@@ -92,7 +95,9 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold font-mono">{fTao(validatorDaily)} τ</p>
-            <p className="text-xs text-muted-foreground">{validators.length} validators</p>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{validatorsEarning}/{validators.length}</span> earning
+            </p>
           </CardContent>
         </Card>
 
@@ -115,7 +120,9 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold font-mono">{fTao(minerDaily)} τ</p>
-            <p className="text-xs text-muted-foreground">{miners.length} miners</p>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -149,7 +156,7 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
         </TableHeader>
         <TableBody>
           {sorted.map((n) => {
-            const daily = dailyTao(n.emission_tao, tempo);
+            const daily = dailyTao(n, tempo);
             return (
               <TableRow key={n.uid}>
                 <TableCell className="text-right">{n.uid}</TableCell>

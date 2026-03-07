@@ -13,7 +13,7 @@ def list_neurons(netuid: int):
             """
             SELECT DISTINCT ON (uid)
                 uid, hotkey, coldkey, stake_tao, validator_trust, consensus,
-                incentive, dividends, emission_tao, active, role, collected_at
+                incentive, dividends, emission_tao, daily_tao, active, role, collected_at
             FROM metagraph_snapshots
             WHERE netuid = %s
             ORDER BY uid, collected_at DESC
@@ -31,9 +31,10 @@ def list_neurons(netuid: int):
             incentive=r[6],
             dividends=r[7],
             emission_tao=r[8],
-            active=r[9],
-            role=r[10],
-            collected_at=r[11],
+            daily_tao=r[9],
+            active=r[10],
+            role=r[11],
+            collected_at=r[12],
         )
         for r in rows
     ]

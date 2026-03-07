@@ -1,7 +1,10 @@
 import { api } from "@/lib/api";
 import { NeuronTable } from "@/components/tao/NeuronTable";
+import { MinerChart } from "@/components/tao/MinerChart";
+import { SubnetHistoryChart } from "@/components/tao/SubnetHistoryChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +15,11 @@ export default async function SubnetDetailPage({
   params: { netuid: string };
 }) {
   const netuid = parseInt(params.netuid, 10);
-  const [subnet, neurons] = await Promise.all([api.subnet(netuid), api.neurons(netuid)]);
+  const [subnet, neurons, history] = await Promise.all([
+    api.subnet(netuid),
+    api.neurons(netuid),
+    api.subnetHistory(netuid),
+  ]);
 
   const links = [
     subnet.subnet_url && { label: "Website", href: subnet.subnet_url, icon: "🌐" },
@@ -128,10 +135,22 @@ export default async function SubnetDetailPage({
         </Card>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Top Neurons by Stake</h2>
-        <NeuronTable neurons={neurons} tempo={subnet.tempo ?? 100} />
-      </div>
+      <Tabs defaultValue="metagraph">
+        <TabsList>
+          <TabsTrigger value="metagraph">Metagraph</TabsTrigger>
+          <TabsTrigger value="chart">Miner Chart</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+        <TabsContent value="metagraph">
+          <NeuronTable neurons={neurons} tempo={subnet.tempo ?? 100} />
+        </TabsContent>
+        <TabsContent value="chart">
+          <MinerChart neurons={neurons} tempo={subnet.tempo ?? 100} />
+        </TabsContent>
+        <TabsContent value="history">
+          <SubnetHistoryChart history={history} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

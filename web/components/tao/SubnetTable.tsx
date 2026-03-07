@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { SubnetOverview } from "@/lib/types";
 
-type SortKey = "netuid" | "alpha_price_tao" | "max_neurons" | "emission_value" | "tempo";
+type SortKey = "netuid" | "alpha_price_tao" | "max_neurons" | "emission_value" | "tempo" | "miner_daily_tao";
 type Dir = "asc" | "desc";
 
 function SortIcon({ col, sort }: { col: SortKey; sort: { key: SortKey; dir: Dir } }) {
@@ -50,6 +50,7 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
           {th("alpha_price_tao", "Alpha Price (τ)", "text-right")}
           {th("max_neurons", "Max Neurons", "text-right")}
           {th("emission_value", "Emission", "text-right")}
+          {th("miner_daily_tao", "Miner Daily τ", "text-right")}
           {th("tempo", "Tempo", "text-right")}
           <TableHead>Updated</TableHead>
         </TableRow>
@@ -77,6 +78,15 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
             <TableCell className="text-right">{s.max_neurons ?? "—"}</TableCell>
             <TableCell className="text-right">
               {s.emission_value != null ? `${(s.emission_value * 100).toFixed(2)}%` : "—"}
+            </TableCell>
+            <TableCell className="text-right font-mono text-sm">
+              {s.miner_daily_tao != null && s.miner_daily_tao > 0 ? (
+                <span className="text-green-600 dark:text-green-400">
+                  {s.miner_daily_tao >= 1000
+                    ? `${(s.miner_daily_tao / 1000).toFixed(2)}k`
+                    : s.miner_daily_tao.toFixed(2)} τ
+                </span>
+              ) : "—"}
             </TableCell>
             <TableCell className="text-right">{s.tempo ?? "—"}</TableCell>
             <TableCell className="text-xs text-muted-foreground">

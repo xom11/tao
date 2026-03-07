@@ -28,8 +28,15 @@ class SubnetOverview(BaseModel):
     emission_value: float | None
     tempo: int | None
     alpha_price_tao: float | None
+    miner_daily_tao: float | None
     collected_at: datetime
     is_my_subnet: bool
+
+
+class SubnetHistoryPoint(BaseModel):
+    collected_at: datetime
+    emission_pct: float | None   # emission_value * 100
+    alpha_price_tao: float | None
 
 
 def blocks_to_human(blocks: int | None) -> str | None:
@@ -81,6 +88,7 @@ class Neuron(BaseModel):
     incentive: float | None
     dividends: float | None
     emission_tao: float | None
+    daily_tao: float | None
     active: bool | None
     role: str | None
     collected_at: datetime

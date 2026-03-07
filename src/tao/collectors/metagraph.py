@@ -14,12 +14,16 @@ class MetagraphCollector(BaseCollector):
     def job_name(self) -> str:
         return f"metagraph_{self.netuid}"
 
+    BLOCKS_PER_DAY = 7200
+
     def collect(self) -> list[dict]:
         meta = self.subtensor.metagraph(self.netuid)
+        tempo = int(meta.tempo) if getattr(meta, "tempo", None) else 0
         rows = []
         for uid in meta.uids:
             uid = int(uid)
-            # SDK returns stake and emission already in TAO (float32)
+            emission = float(meta.emission[uid])
+            daily_tao = (emission / tempo * self.BLOCKS_PER_DAY) if tempo > 0 else None
             rows.append({
                 "netuid": self.netuid,
                 "uid": uid,
@@ -30,7 +34,8 @@ class MetagraphCollector(BaseCollector):
                 "consensus": float(meta.consensus[uid]),
                 "incentive": float(meta.incentive[uid]),
                 "dividends": float(meta.dividends[uid]),
-                "emission_tao": float(meta.emission[uid]),
+                "emission_tao": emission,
+                "daily_tao": daily_tao,
                 "active": bool(meta.active[uid]),
                 "role": "validator" if float(meta.validator_trust[uid]) > 0 else "miner",
             })
