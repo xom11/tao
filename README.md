@@ -26,10 +26,6 @@ cd web && npm install && cd ..   # Node deps
 ```
 BT_NETWORK=finney
 DATABASE_URL=postgresql://user:pass@localhost:5432/tao_db
-COLDKEYS=5Abc...,5Def...         # coldkeys để theo dõi balance
-
-# Để trống = theo dõi tất cả subnets (khuyến nghị)
-WATCHED_SUBNET_NETUIDS=
 ```
 
 ### 3. Khởi tạo database

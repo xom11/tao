@@ -90,10 +90,6 @@ uv run python scripts/my_subnet.py remove --netuid 118
 ## Config `.env`
 ```
 BT_NETWORK=finney
-WATCHED_SUBNET_NETUIDS=          # để trống = theo dõi tất cả (khuyến nghị)
-                                  # hoặc: 1,18,64,118 để lọc subset
-PARTICIPATED_SUBNET_NETUIDS=     # TBD — chưa dùng
-COLDKEYS=5Abc...,5Def...         # CSV, parse tự động — dùng cho balance collector
 DATABASE_URL=postgresql://user:pass@localhost:5432/tao_db
 TAOSTATS_API_KEY=...
 ```

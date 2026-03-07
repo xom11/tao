@@ -21,9 +21,7 @@ TEMPO_MINUTES = 72
 
 
 def _get_netuids(subtensor: bt.Subtensor) -> list[int]:
-    """Return watched netuids. If not configured, return all active subnets."""
-    if settings.watched_subnet_netuids:
-        return settings.watched_subnet_netuids
+    """Return all active subnet netuids."""
     subnets = subtensor.get_all_subnets_info()
     return [info.netuid for info in subnets]
 
@@ -39,12 +37,7 @@ def main() -> None:
     log.info("Starting Bittensor Monitor")
     log.info("Network: %s", settings.bt_network)
 
-    watched = settings.watched_subnet_netuids
-    if watched:
-        log.info("Watched subnets: %s", watched)
-    else:
-        log.info("Watched subnets: ALL (dynamic)")
-
+    log.info("Watched subnets: ALL")
     log.info("Coldkeys: %d configured", len(settings.coldkeys))
 
     pool = get_pool()

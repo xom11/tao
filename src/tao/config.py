@@ -14,14 +14,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://localhost/tao_db"
     taostats_api_key: str = ""
 
-    # Store as raw CSV strings — pydantic-settings JSON-decodes list[...] fields
-    # before validators run, crashing on empty strings like `COLDKEYS=`
-    netuids_raw: str = Field("", validation_alias="watched_subnet_netuids")
     coldkeys_raw: str = Field("", validation_alias="coldkeys")
-
-    @property
-    def watched_subnet_netuids(self) -> list[int]:
-        return [int(x.strip()) for x in self.netuids_raw.split(",") if x.strip()]
 
     @property
     def coldkeys(self) -> list[str]:
