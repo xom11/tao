@@ -1,0 +1,41 @@
+from fastapi import APIRouter
+from tao.db.connection import get_pool
+from api.models import Neuron
+
+router = APIRouter()
+
+
+@router.get("/subnets/{netuid}/neurons", response_model=list[Neuron])
+def list_neurons(netuid: int):
+    pool = get_pool()
+    with pool.connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT DISTINCT ON (uid)
+                uid, hotkey, coldkey, stake_tao, validator_trust, consensus,
+                incentive, dividends, emission_tao, active, collected_at
+            FROM metagraph_snapshots
+            WHERE netuid = %s
+            ORDER BY uid, collected_at DESC
+            """,
+            (netuid,),
+        ).fetchall()
+    # sort by stake descending, limit 50
+    neurons = [
+        Neuron(
+            uid=r[0],
+            hotkey=r[1],
+            coldkey=r[2],
+            stake_tao=r[3],
+            validator_trust=r[4],
+            consensus=r[5],
+            incentive=r[6],
+            dividends=r[7],
+            emission_tao=r[8],
+            active=r[9],
+            collected_at=r[10],
+        )
+        for r in rows
+    ]
+    neurons.sort(key=lambda n: n.stake_tao or 0, reverse=True)
+    return neurons[:50]

@@ -6,6 +6,8 @@
 - **PostgreSQL** + psycopg3 — lưu trữ
 - **APScheduler 3.x** — lịch chạy định kỳ
 - **Pydantic-settings** — load config từ `.env`
+- **FastAPI** + uvicorn — REST API backend (port 8000)
+- **Next.js 14** + Tailwind + shadcn/ui — web frontend (port 3000)
 
 ## Triết lý theo dõi (2 tầng)
 
@@ -23,33 +25,51 @@ Các subnet mà người dùng tham gia (validator/miner) được theo dõi **k
 
 ## Cấu trúc project
 ```
-src/tao/
-├── config.py          # Typed settings từ .env
-├── db/
-│   ├── connection.py  # Connection pool (psycopg_pool)
-│   ├── schema.sql     # DDL — chạy qua scripts/init_db.py
-│   └── queries/       # balance.py, subnet.py, metagraph.py, runs.py
-├── collectors/
-│   ├── base.py        # BaseCollector abstract: collect() → save() → log run
-│   ├── subnet_overview.py   # Tất cả subnets overview
-│   ├── metagraph.py         # Metagraph per subnet (dùng cho cả basic lẫn detailed)
-│   ├── coldkey_balance.py
-│   └── taostats.py    # placeholder
-├── scheduler.py       # APScheduler jobs
-└── main.py
-scripts/
-├── init_db.py         # Tạo schema lần đầu
-└── backfill.py        # Chạy collector thủ công
+tao/
+├── src/tao/           # Data pipeline
+│   ├── config.py          # Typed settings từ .env
+│   ├── db/
+│   │   ├── connection.py  # Connection pool (psycopg_pool)
+│   │   ├── schema.sql     # DDL — chạy qua scripts/init_db.py
+│   │   └── queries/       # balance.py, subnet.py, metagraph.py, runs.py, my_subnets.py
+│   ├── collectors/
+│   │   ├── base.py        # BaseCollector abstract: collect() → save() → log run
+│   │   ├── subnet_overview.py
+│   │   ├── metagraph.py
+│   │   ├── coldkey_balance.py
+│   │   └── taostats.py    # placeholder
+│   ├── scheduler.py       # APScheduler jobs
+│   └── main.py
+├── api/               # FastAPI backend
+│   ├── main.py            # App, CORS, lifespan
+│   ├── models.py          # Pydantic response schemas
+│   └── routers/           # dashboard.py, subnets.py, metagraph.py, balances.py
+├── web/               # Next.js 14 frontend
+│   ├── app/               # dashboard, my-subnets, subnets, balances pages
+│   ├── components/tao/    # StatsCards, CollectionRunsTable, SubnetTable, NeuronTable
+│   └── lib/               # api.ts, types.ts
+└── scripts/
+    ├── init_db.py         # Tạo schema lần đầu
+    ├── backfill.py        # Chạy collector thủ công
+    └── my_subnet.py       # Quản lý my_subnets
 ```
 
 ## Lệnh hay dùng
 ```bash
-uv sync                                              # cài dependencies
+# Setup
+uv sync                                              # cài Python deps
+cd web && npm install && cd ..                       # cài Node deps
+
+# Data pipeline
 uv run python scripts/init_db.py                     # khởi tạo DB schema
 uv run python scripts/backfill.py                    # chạy tất cả collectors
 uv run python scripts/backfill.py --collector metagraph
 uv run python scripts/backfill.py --collector metagraph --netuid 118
-uv run python -m tao.main                            # chạy scheduler
+uv run python -m tao.main                            # chạy scheduler (tự động)
+
+# Web interface (3 terminal)
+uv run uvicorn api.main:app --reload --port 8000     # API backend
+cd web && npm run dev                                # Frontend → http://localhost:3000
 
 # Quản lý subnets tầng 2
 uv run python scripts/my_subnet.py list
@@ -86,6 +106,28 @@ Quản lý qua `scripts/my_subnet.py`. Các trường:
 - `coldkey` — coldkey của mình trong subnet này
 - `hotkey` — hotkey tương ứng
 - `notes` — markdown tự do (mô tả, URL dashboard, role, ghi chú...)
+
+## Web Interface
+
+### API (`api/`)
+- Chạy từ project root: `uv run uvicorn api.main:app --reload --port 8000`
+- Import `tao` package qua `src/` (đã có trong uv path), `api/` module import trực tiếp
+- Reuse pool từ `tao.db.connection.get_pool()` — không tạo pool riêng
+- Mỗi router dùng `pool = get_pool()` ở đầu handler (pool đã khởi tạo qua lifespan)
+- CORS cho phép `http://localhost:3000`
+
+### Frontend (`web/`)
+- Next.js 14 App Router, TypeScript, Tailwind, shadcn/ui
+- Tất cả pages là Server Components (`async` function, fetch trực tiếp)
+- `export const dynamic = "force-dynamic"` trên mỗi page — không prerender tĩnh
+- API URL cấu hình qua `web/.env.local`: `NEXT_PUBLIC_API_URL=http://localhost:8000`
+- CSS: dùng HSL CSS vars chuẩn, **không** dùng `@import "tw-animate-css"` hay `@import "shadcn/tailwind.css"` (không tương thích Next.js 14 + Tailwind v3)
+
+### Thêm API endpoint mới
+1. Thêm route vào router tương ứng trong `api/routers/`
+2. Thêm Pydantic model vào `api/models.py` nếu cần
+3. Thêm typed fetch wrapper vào `web/lib/api.ts`
+4. Thêm TypeScript interface vào `web/lib/types.ts`
 
 ## Conventions
 - **Append-only DB**: chỉ INSERT, không UPDATE/DELETE. Mỗi lần chạy là snapshot mới.
