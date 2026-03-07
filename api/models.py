@@ -107,6 +107,12 @@ class MySubnet(BaseModel):
     subnet_emission_value: float | None
 
 
+class MySubnetUpsert(BaseModel):
+    coldkey: str | None = None
+    hotkey: str | None = None
+    notes: str | None = None
+
+
 class NotesUpdate(BaseModel):
     notes: str
 

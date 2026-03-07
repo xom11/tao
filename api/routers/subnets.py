@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from tao.db.connection import get_pool
 from tao.db.queries import my_subnets as my_subnets_q
-from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MySubnet, NotesUpdate, blocks_to_human
+from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MySubnet, MySubnetUpsert, NotesUpdate, blocks_to_human
 
 router = APIRouter()
 
@@ -161,6 +161,22 @@ def get_subnet_history(netuid: int, days: int = 90):
         )
         for r in rows
     ]
+
+
+@router.put("/my-subnets/{netuid}")
+def upsert_my_subnet(netuid: int, body: MySubnetUpsert):
+    pool = get_pool()
+    my_subnets_q.upsert(pool, netuid, coldkey=body.coldkey, hotkey=body.hotkey, notes=body.notes)
+    return {"ok": True}
+
+
+@router.delete("/my-subnets/{netuid}")
+def delete_my_subnet(netuid: int):
+    pool = get_pool()
+    found = my_subnets_q.delete(pool, netuid)
+    if not found:
+        raise HTTPException(status_code=404, detail="Subnet not found")
+    return {"ok": True}
 
 
 @router.patch("/my-subnets/{netuid}/notes")

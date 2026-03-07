@@ -67,6 +67,12 @@ def get(pool: ConnectionPool, netuid: int) -> dict | None:
     return {"netuid": row[0], "coldkey": row[1], "hotkey": row[2], "notes": row[3], "updated_at": row[4]}
 
 
+def delete(pool: ConnectionPool, netuid: int) -> bool:
+    with pool.connection() as conn:
+        result = conn.execute("DELETE FROM my_subnets WHERE netuid = %s", (netuid,))
+        return result.rowcount > 0
+
+
 def get_netuids(pool: ConnectionPool) -> list[int]:
     """Trả về danh sách netuid đang được theo dõi ở tầng 2."""
     with pool.connection() as conn:
