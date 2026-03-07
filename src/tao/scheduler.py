@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import bittensor as bt
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -18,29 +18,45 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 TEMPO_MINUTES = 72
-METAGRAPH_STAGGER_MINUTES = 5
+
+
+def _get_netuids(subtensor: bt.Subtensor) -> list[int]:
+    """Return watched netuids. If not configured, return all active subnets."""
+    if settings.watched_subnet_netuids:
+        return settings.watched_subnet_netuids
+    subnets = subtensor.get_all_subnets_info()
+    return [info.netuid for info in subnets]
+
+
+def _run_metagraphs(subtensor: bt.Subtensor, pool) -> None:
+    netuids = _get_netuids(subtensor)
+    log.info("Collecting metagraph for %d subnets...", len(netuids))
+    for netuid in netuids:
+        MetagraphCollector(subtensor, pool, netuid).run()
 
 
 def main() -> None:
     log.info("Starting Bittensor Monitor")
     log.info("Network: %s", settings.bt_network)
-    log.info("Watched subnets: %s", settings.watched_subnet_netuids)
+
+    watched = settings.watched_subnet_netuids
+    if watched:
+        log.info("Watched subnets: %s", watched)
+    else:
+        log.info("Watched subnets: ALL (dynamic)")
+
     log.info("Coldkeys: %d configured", len(settings.coldkeys))
 
     pool = get_pool()
     subtensor = bt.Subtensor(settings.bt_network)
 
     subnet_collector = SubnetOverviewCollector(subtensor, pool)
-    metagraph_collectors = [
-        MetagraphCollector(subtensor, pool, netuid)
-        for netuid in settings.watched_subnet_netuids
-    ]
     balance_collector = ColdkeyBalanceCollector(subtensor, pool, settings.coldkeys)
 
     scheduler = BlockingScheduler(timezone="UTC")
     now = datetime.now(timezone.utc)
 
-    # Subnet overview — every 72 minutes, run immediately on startup
+    # Subnet overview — every 72 minutes
     scheduler.add_job(
         subnet_collector.run,
         "interval",
@@ -49,27 +65,29 @@ def main() -> None:
         id="subnet_overview",
     )
 
-    # Metagraph — every 72 minutes, staggered by 5 min per subnet
-    for i, collector in enumerate(metagraph_collectors):
-        start = now + timedelta(minutes=i * METAGRAPH_STAGGER_MINUTES)
-        scheduler.add_job(
-            collector.run,
-            "interval",
-            minutes=TEMPO_MINUTES,
-            next_run_time=start,
-            id=collector.job_name,
-        )
-
-    # Balance — every 24 hours, run immediately on startup
+    # Metagraph — one job that loops all subnets sequentially
     scheduler.add_job(
-        balance_collector.run,
+        _run_metagraphs,
         "interval",
-        hours=24,
+        minutes=TEMPO_MINUTES,
+        args=[subtensor, pool],
         next_run_time=now,
-        id="coldkey_balances",
+        id="metagraph_all",
     )
 
-    log.info("Scheduler configured. Starting...")
+    # Balance — every 24 hours
+    if settings.coldkeys:
+        scheduler.add_job(
+            balance_collector.run,
+            "interval",
+            hours=24,
+            next_run_time=now,
+            id="coldkey_balances",
+        )
+    else:
+        log.info("No coldkeys configured — skipping balance collector")
+
+    log.info("Scheduler started. Metagraph runs every %d minutes.", TEMPO_MINUTES)
     try:
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
