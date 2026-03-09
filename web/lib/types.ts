@@ -37,6 +37,13 @@ export interface SubnetHistoryPoint {
   alpha_price_tao: number | null;
 }
 
+export interface MinerHistoryPoint {
+  collected_at: string;
+  uid: number;
+  hotkey: string;
+  daily_tao: number;
+}
+
 export interface SubnetDetail extends SubnetOverview {
   difficulty: number | null;
   immunity_period: number | null;

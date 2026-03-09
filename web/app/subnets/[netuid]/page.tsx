@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { NeuronTable } from "@/components/tao/NeuronTable";
 import { MinerChart } from "@/components/tao/MinerChart";
 import { SubnetHistoryChart } from "@/components/tao/SubnetHistoryChart";
+import { MinerHistoryChart } from "@/components/tao/MinerHistoryChart";
 import { SubnetNotes } from "@/components/tao/SubnetNotes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +17,11 @@ export default async function SubnetDetailPage({
   params: { netuid: string };
 }) {
   const netuid = parseInt(params.netuid, 10);
-  const [subnet, neurons, history] = await Promise.all([
+  const [subnet, neurons, history, minerHistory] = await Promise.all([
     api.subnet(netuid),
     api.neurons(netuid),
     api.subnetHistory(netuid),
+    api.minerHistory(netuid),
   ]);
 
   const links = [
@@ -161,7 +163,13 @@ export default async function SubnetDetailPage({
           <MinerChart neurons={neurons} tempo={subnet.tempo ?? 100} />
         </TabsContent>
         <TabsContent value="history">
-          <SubnetHistoryChart history={history} />
+          <div className="space-y-10">
+            <SubnetHistoryChart history={history} />
+            <div>
+              <p className="text-sm font-medium mb-3">Miner Daily TAO History (top 20)</p>
+              <MinerHistoryChart data={minerHistory} />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

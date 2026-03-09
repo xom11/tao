@@ -121,6 +121,13 @@ class NotesUpdate(BaseModel):
     notes: str
 
 
+class MinerHistoryPoint(BaseModel):
+    collected_at: datetime
+    uid: int
+    hotkey: str
+    daily_tao: float
+
+
 class Balance(BaseModel):
     coldkey: str
     balance_tao: float | None

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from tao.db.connection import get_pool
 from tao.db.queries import my_subnets as my_subnets_q
-from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MySubnet, MySubnetUpsert, NotesUpdate, blocks_to_human
+from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MinerHistoryPoint, MySubnet, MySubnetUpsert, NotesUpdate, blocks_to_human
 
 router = APIRouter()
 
@@ -168,6 +168,39 @@ def get_subnet_history(netuid: int, days: int = 90):
             emission_pct=r[1] * 100 if r[1] is not None else None,
             alpha_price_tao=r[2],
         )
+        for r in rows
+    ]
+
+
+@router.get("/subnets/{netuid}/miner-history", response_model=list[MinerHistoryPoint])
+def get_miner_history(netuid: int, days: int = 90, top_n: int = 20):
+    pool = get_pool()
+    with pool.connection() as conn:
+        rows = conn.execute(
+            """
+            WITH top_miners AS (
+                SELECT uid
+                FROM metagraph_snapshots
+                WHERE netuid = %s
+                  AND role = 'miner'
+                  AND daily_tao > 0
+                  AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
+                GROUP BY uid
+                ORDER BY AVG(daily_tao) DESC
+                LIMIT %s
+            )
+            SELECT m.collected_at, m.uid, m.hotkey, m.daily_tao
+            FROM metagraph_snapshots m
+            JOIN top_miners t ON t.uid = m.uid
+            WHERE m.netuid = %s
+              AND m.role = 'miner'
+              AND (%s = 0 OR m.collected_at >= NOW() - (%s || ' days')::INTERVAL)
+            ORDER BY m.collected_at ASC, m.uid ASC
+            """,
+            (netuid, days, days, top_n, netuid, days, days),
+        ).fetchall()
+    return [
+        MinerHistoryPoint(collected_at=r[0], uid=r[1], hotkey=r[2], daily_tao=r[3])
         for r in rows
     ]
 

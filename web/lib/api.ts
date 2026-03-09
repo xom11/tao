@@ -4,6 +4,7 @@ import type {
   SubnetOverview,
   SubnetDetail,
   SubnetHistoryPoint,
+  MinerHistoryPoint,
   Neuron,
   MySubnet,
   Balance,
@@ -24,6 +25,7 @@ export const api = {
   subnet: (netuid: number) => get<SubnetDetail>(`/api/subnets/${netuid}`),
   neurons: (netuid: number) => get<Neuron[]>(`/api/subnets/${netuid}/neurons`),
   subnetHistory: (netuid: number) => get<SubnetHistoryPoint[]>(`/api/subnets/${netuid}/history?days=90`, 0),
+  minerHistory: (netuid: number) => get<MinerHistoryPoint[]>(`/api/subnets/${netuid}/miner-history?days=90`, 0),
   mySubnets: () => get<MySubnet[]>("/api/my-subnets"),
   balances: () => get<Balance[]>("/api/balances"),
 
