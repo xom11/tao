@@ -82,7 +82,7 @@ export function MinerChart({ neurons, tempo }: Props) {
         {coldkeys.length} coldkeys · {miners.length} miners with emission &gt; 0 · sorted by max daily TAO
       </p>
       <ResponsiveContainer width="100%" height={height}>
-        <ScatterChart margin={{ top: 8, right: 24, left: 84, bottom: 8 }}>
+        <ScatterChart margin={{ top: 8, right: 24, left: 104, bottom: 24 }}>
           <XAxis
             type="number"
             dataKey="x"
@@ -91,6 +91,7 @@ export function MinerChart({ neurons, tempo }: Props) {
             tickLine={false}
             axisLine={false}
             name="Daily TAO"
+            label={{ value: "Daily TAO (τ)", position: "insideBottom", offset: -2, fontSize: 11 }}
           />
           <YAxis
             type="number"
@@ -103,6 +104,7 @@ export function MinerChart({ neurons, tempo }: Props) {
             axisLine={false}
             width={80}
             name="Coldkey"
+            label={{ value: "Coldkey", angle: -90, position: "left", offset: 16, fontSize: 11 }}
           />
           {/* Horizontal guide lines per row */}
           {coldkeys.map((_, i) => (
