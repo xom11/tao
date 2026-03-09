@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS metagraph_snapshots (
     emission_tao    NUMERIC(20, 9),
     daily_tao       DOUBLE PRECISION,  -- emission_tao / tempo * 7200 (tạm thời)
     active          BOOLEAN,
-    role            TEXT,           -- 'validator' | 'miner'
+    role            TEXT,           -- 'validator' | 'miner' | 'owner'
     collected_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

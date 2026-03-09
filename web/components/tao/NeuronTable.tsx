@@ -17,7 +17,7 @@ const BLOCKS_PER_DAY = 7200;
 
 type SortKey = "uid" | "stake_tao" | "incentive" | "dividends" | "emission_tao" | "daily_tao" | "validator_trust";
 type Dir = "asc" | "desc";
-type RoleFilter = "all" | "validator" | "miner";
+type RoleFilter = "all" | "validator" | "miner" | "owner";
 
 function dailyTao(n: Neuron, tempo: number): number {
   if (n.daily_tao != null) return n.daily_tao;
@@ -46,12 +46,13 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
     setSort((s) => s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
   }
 
-  function toggleRole(role: "validator" | "miner") {
+  function toggleRole(role: "validator" | "miner" | "owner") {
     setRoleFilter((f) => f === role ? "all" : role);
   }
 
   const validators = neurons.filter((n) => n.role === "validator");
   const miners = neurons.filter((n) => n.role === "miner");
+  const owners = neurons.filter((n) => n.role === "owner");
   const validatorDaily = validators.reduce((s, n) => s + dailyTao(n, tempo), 0);
   const minerDaily = miners.reduce((s, n) => s + dailyTao(n, tempo), 0);
   const validatorsEarning = validators.filter((n) => dailyTao(n, tempo) > 0).length;
@@ -75,7 +76,7 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {/* Validator card — click to filter */}
         <Card
           onClick={() => toggleRole("validator")}
@@ -125,6 +126,31 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
             </p>
           </CardContent>
         </Card>
+
+        {/* Owner card — click to filter, chỉ hiện nếu có owner */}
+        {owners.length > 0 && (
+          <Card
+            onClick={() => toggleRole("owner")}
+            className={`cursor-pointer transition-all ${
+              roleFilter === "owner"
+                ? "ring-2 ring-amber-500"
+                : "hover:border-foreground/30"
+            }`}
+          >
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm text-muted-foreground flex items-center justify-between">
+                <span>Owner</span>
+                {roleFilter === "owner" && (
+                  <span className="text-xs font-normal text-amber-500">• filtered</span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-bold font-mono">{owners.length}</p>
+              <p className="text-xs text-muted-foreground">neuron</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Row count hint */}
@@ -161,7 +187,9 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
               <TableRow key={n.uid}>
                 <TableCell className="text-right">{n.uid}</TableCell>
                 <TableCell>
-                  {n.role === "validator" ? (
+                  {n.role === "owner" ? (
+                    <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400">O</Badge>
+                  ) : n.role === "validator" ? (
                     <Badge variant="default">V</Badge>
                   ) : n.role === "miner" ? (
                     <Badge variant="outline">M</Badge>
