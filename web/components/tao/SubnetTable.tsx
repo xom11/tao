@@ -43,6 +43,7 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
   );
 
   return (
+    <div className="overflow-x-auto rounded-md border">
     <Table>
       <TableHeader>
         <TableRow>
@@ -99,5 +100,6 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }

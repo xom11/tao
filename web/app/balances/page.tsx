@@ -16,6 +16,7 @@ export default async function BalancesPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Coldkey Balances</h1>
+      <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -38,6 +39,7 @@ export default async function BalancesPage() {
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }

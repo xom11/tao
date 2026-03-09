@@ -76,7 +76,7 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {/* Validator card — click to filter */}
         <Card
           onClick={() => toggleRole("validator")}
@@ -164,6 +164,7 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
         </p>
       )}
 
+      <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -215,6 +216,7 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
           })}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }

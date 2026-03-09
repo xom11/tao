@@ -16,6 +16,7 @@ function fmtDuration(start: string, end: string) {
 
 export function CollectionRunsTable({ runs }: { runs: CollectionRun[] }) {
   return (
+    <div className="overflow-x-auto rounded-md border">
     <Table>
       <TableHeader>
         <TableRow>
@@ -48,5 +49,6 @@ export function CollectionRunsTable({ runs }: { runs: CollectionRun[] }) {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }
