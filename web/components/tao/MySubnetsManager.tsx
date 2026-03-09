@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { MySubnet } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -47,13 +48,20 @@ function FormDialog({ open, onClose, initial }: FormDialogProps) {
     if (isNaN(nid) || nid < 0) { setError("NetUID must be a non-negative number"); return; }
     setError("");
     startTransition(async () => {
-      await api.upsertMySubnet(nid, {
-        coldkey: coldkey.trim() || undefined,
-        hotkey: hotkey.trim() || undefined,
-        notes: notes.trim() || undefined,
-      });
-      router.refresh();
-      onClose();
+      try {
+        await api.upsertMySubnet(nid, {
+          coldkey: coldkey.trim() || undefined,
+          hotkey: hotkey.trim() || undefined,
+          notes: notes.trim() || undefined,
+        });
+        toast.success(isEdit ? `Subnet #${nid} updated` : `Subnet #${nid} added`);
+        router.refresh();
+        onClose();
+      } catch (e) {
+        toast.error("Save failed", {
+          description: e instanceof Error ? e.message : String(e),
+        });
+      }
     });
   }
 
@@ -144,9 +152,16 @@ function DeleteDialog({ subnet, onClose }: DeleteDialogProps) {
   function handleDelete() {
     if (!subnet) return;
     startTransition(async () => {
-      await api.deleteMySubnet(subnet.netuid);
-      router.refresh();
-      onClose();
+      try {
+        await api.deleteMySubnet(subnet.netuid);
+        toast.success(`Subnet #${subnet.netuid} removed`);
+        router.refresh();
+        onClose();
+      } catch (e) {
+        toast.error("Remove failed", {
+          description: e instanceof Error ? e.message : String(e),
+        });
+      }
     });
   }
 

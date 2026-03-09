@@ -3,6 +3,8 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
 export function SubnetNotes({
@@ -16,7 +18,7 @@ export function SubnetNotes({
   const [draft, setDraft] = useState(initialNotes ?? "");
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   function handleEdit() {
     setDraft(notes);
@@ -30,14 +32,16 @@ export function SubnetNotes({
 
   async function handleSave() {
     setSaving(true);
-    setError(null);
     try {
       await api.upsertMySubnet(netuid, { notes: draft });
       setNotes(draft);
       setEditing(false);
-      window.location.reload();
+      toast.success("Notes saved");
+      router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Lưu thất bại");
+      toast.error("Save failed", {
+        description: e instanceof Error ? e.message : String(e),
+      });
     } finally {
       setSaving(false);
     }
@@ -47,10 +51,7 @@ export function SubnetNotes({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold">Notes</h2>
-        <div className="flex items-center gap-2">
-          {error && (
-            <p className="text-xs text-destructive">{error}</p>
-          )}
+        <div className="flex gap-2">
           {editing ? (
             <>
               <button
