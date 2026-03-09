@@ -208,16 +208,16 @@ export default async function SubnetDetailPage({
           <NeuronTable neurons={neurons} tempo={subnet.tempo ?? 100} />
         </TabsContent>
         <TabsContent value="chart">
-          <MinerChart neurons={neurons} tempo={subnet.tempo ?? 100} />
-        </TabsContent>
-        <TabsContent value="history">
           <div className="space-y-10">
-            <SubnetHistoryChart history={history} />
+            <MinerChart neurons={neurons} tempo={subnet.tempo ?? 100} />
             <div>
               <p className="text-sm font-medium mb-3">Miner Daily TAO History (top 20)</p>
               <MinerHistoryChart data={minerHistory} />
             </div>
           </div>
+        </TabsContent>
+        <TabsContent value="history">
+          <SubnetHistoryChart history={history} />
         </TabsContent>
       </Tabs>
     </div>
