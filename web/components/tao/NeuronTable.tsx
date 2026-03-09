@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Neuron } from "@/lib/types";
 
 const BLOCKS_PER_DAY = 7200;
@@ -46,17 +45,9 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
     setSort((s) => s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
   }
 
-  function toggleRole(role: "validator" | "miner" | "owner") {
-    setRoleFilter((f) => f === role ? "all" : role);
-  }
-
   const validators = neurons.filter((n) => n.role === "validator");
   const miners = neurons.filter((n) => n.role === "miner");
   const owners = neurons.filter((n) => n.role === "owner");
-  const validatorDaily = validators.reduce((s, n) => s + dailyTao(n, tempo), 0);
-  const minerDaily = miners.reduce((s, n) => s + dailyTao(n, tempo), 0);
-  const validatorsEarning = validators.filter((n) => dailyTao(n, tempo) > 0).length;
-  const minersEarning = miners.filter((n) => dailyTao(n, tempo) > 0).length;
 
   const filtered = roleFilter === "all" ? neurons : neurons.filter((n) => n.role === roleFilter);
 
@@ -75,94 +66,34 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
   );
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {/* Validator card — click to filter */}
-        <Card
-          onClick={() => toggleRole("validator")}
-          className={`cursor-pointer transition-all ${
-            roleFilter === "validator"
-              ? "ring-2 ring-primary"
-              : "hover:border-foreground/30"
-          }`}
-        >
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm text-muted-foreground flex items-center justify-between">
-              <span>Validators — Daily TAO</span>
-              {roleFilter === "validator" && (
-                <span className="text-xs font-normal text-primary">• filtered</span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold font-mono">{fTao(validatorDaily)} τ</p>
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">{validatorsEarning}/{validators.length}</span> earning
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Miner card — click to filter */}
-        <Card
-          onClick={() => toggleRole("miner")}
-          className={`cursor-pointer transition-all ${
-            roleFilter === "miner"
-              ? "ring-2 ring-primary"
-              : "hover:border-foreground/30"
-          }`}
-        >
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm text-muted-foreground flex items-center justify-between">
-              <span>Miners — Daily TAO</span>
-              {roleFilter === "miner" && (
-                <span className="text-xs font-normal text-primary">• filtered</span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold font-mono">{fTao(minerDaily)} τ</p>
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Owner card — click to filter, chỉ hiện nếu có owner */}
-        {owners.length > 0 && (
-          <Card
-            onClick={() => toggleRole("owner")}
-            className={`cursor-pointer transition-all ${
-              roleFilter === "owner"
-                ? "ring-2 ring-amber-500"
-                : "hover:border-foreground/30"
+    <div className="space-y-3">
+      {/* Filter buttons */}
+      <div className="flex items-center gap-1 flex-wrap">
+        <span className="text-xs text-muted-foreground mr-1">Filter:</span>
+        {([
+          { role: "all", label: `All (${neurons.length})` },
+          { role: "validator", label: `V ${validators.length}` },
+          { role: "miner", label: `M ${miners.length}` },
+          ...(owners.length > 0 ? [{ role: "owner", label: `O ${owners.length}` }] : []),
+        ] as { role: RoleFilter; label: string }[]).map(({ role, label }) => (
+          <button
+            key={role}
+            onClick={() => setRoleFilter(role === roleFilter ? "all" : role)}
+            className={`px-2 py-0.5 rounded text-xs transition-colors ${
+              roleFilter === role
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-muted-foreground flex items-center justify-between">
-                <span>Owner</span>
-                {roleFilter === "owner" && (
-                  <span className="text-xs font-normal text-amber-500">• filtered</span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-bold font-mono">{owners.length}</p>
-              <p className="text-xs text-muted-foreground">neuron</p>
-            </CardContent>
-          </Card>
+            {label}
+          </button>
+        ))}
+        {roleFilter !== "all" && (
+          <span className="text-xs text-muted-foreground ml-2">
+            Showing {sorted.length} of {neurons.length}
+          </span>
         )}
       </div>
-
-      {/* Row count hint */}
-      {roleFilter !== "all" && (
-        <p className="text-xs text-muted-foreground">
-          Showing {sorted.length} of {neurons.length} neurons
-          {" "}—{" "}
-          <button className="underline hover:text-foreground" onClick={() => setRoleFilter("all")}>
-            clear filter
-          </button>
-        </p>
-      )}
 
       <div className="overflow-x-auto rounded-md border">
       <Table>

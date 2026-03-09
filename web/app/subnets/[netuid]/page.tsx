@@ -16,6 +16,8 @@ export default async function SubnetDetailPage({
 }: {
   params: { netuid: string };
 }) {
+  const BLOCKS_PER_DAY = 7200;
+
   const netuid = parseInt(params.netuid, 10);
   const [subnet, neurons, history, minerHistory] = await Promise.all([
     api.subnet(netuid),
@@ -23,6 +25,24 @@ export default async function SubnetDetailPage({
     api.subnetHistory(netuid),
     api.minerHistory(netuid),
   ]);
+
+  const tempo = subnet.tempo ?? 100;
+  function calcDaily(n: { daily_tao: number | null; emission_tao: number | null }) {
+    if (n.daily_tao != null) return n.daily_tao;
+    if (n.emission_tao == null || tempo === 0) return 0;
+    return (n.emission_tao / tempo) * BLOCKS_PER_DAY;
+  }
+  const validators = neurons.filter((n) => n.role === "validator");
+  const miners = neurons.filter((n) => n.role === "miner");
+  const owners = neurons.filter((n) => n.role === "owner");
+  const validatorDaily = validators.reduce((s, n) => s + calcDaily(n), 0);
+  const minerDaily = miners.reduce((s, n) => s + calcDaily(n), 0);
+  const validatorsEarning = validators.filter((n) => calcDaily(n) > 0).length;
+  const minersEarning = miners.filter((n) => calcDaily(n) > 0).length;
+
+  function fTao(v: number) {
+    return v >= 1000 ? `${(v / 1000).toFixed(2)}k` : v.toFixed(2);
+  }
 
   const links = [
     subnet.subnet_url && { label: "Website", href: subnet.subnet_url, icon: "🌐" },
@@ -146,6 +166,41 @@ export default async function SubnetDetailPage({
             <p className="font-mono text-sm break-all">{subnet.owner ?? "—"}</p>
           </CardContent>
         </Card>
+
+        {/* Neuron role stats — luôn hiện dù đang ở tab nào */}
+        <Card>
+          <CardHeader className="pb-1">
+            <CardTitle className="text-sm text-muted-foreground">Validators — Daily TAO</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xl font-bold font-mono">{fTao(validatorDaily)} τ</p>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{validatorsEarning}/{validators.length}</span> earning
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-1">
+            <CardTitle className="text-sm text-muted-foreground">Miners — Daily TAO</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xl font-bold font-mono text-green-600 dark:text-green-400">{fTao(minerDaily)} τ</p>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
+            </p>
+          </CardContent>
+        </Card>
+        {owners.length > 0 && (
+          <Card>
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm text-muted-foreground">Owner neurons</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400">{owners.length}</p>
+              <p className="text-xs text-muted-foreground">neuron</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <SubnetNotes netuid={netuid} initialNotes={subnet.notes ?? null} />
