@@ -28,6 +28,12 @@ class SubnetOverviewCollector(BaseCollector):
             info = all_info.get(netuid)
             ident = s.subnet_identity  # None nếu subnet chưa set identity
 
+            try:
+                _fee = self.subtensor.recycle(netuid)
+                register_fee_tao = float(_fee) if _fee is not None else None
+            except Exception:
+                register_fee_tao = None
+
             rows.append({
                 "netuid": netuid,
                 "subnet_name": s.subnet_name or None,
@@ -39,6 +45,7 @@ class SubnetOverviewCollector(BaseCollector):
                 "difficulty": int(info.difficulty) if info else None,
                 "immunity_period": int(info.immunity_period) if info else None,
                 "alpha_price_tao": float(s.price) if s.price is not None else None,
+                "register_fee_tao": register_fee_tao,
                 # identity fields — None nếu subnet không có identity
                 "description": ident.description or None if ident else None,
                 "subnet_url": ident.subnet_url or None if ident else None,

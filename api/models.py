@@ -30,6 +30,7 @@ class SubnetOverview(BaseModel):
     alpha_price_tao: float | None
     miner_daily_tao: float | None
     miner_earning_count: int | None
+    register_fee_tao: float | None
     collected_at: datetime
     is_my_subnet: bool
 
@@ -69,6 +70,7 @@ class SubnetDetail(BaseModel):
     immunity_period: int | None
     immunity_period_human: str | None
     alpha_price_tao: float | None
+    register_fee_tao: float | None
     description: str | None
     subnet_url: str | None
     github_repo: str | None

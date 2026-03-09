@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { SubnetOverview } from "@/lib/types";
 
-type SortKey = "netuid" | "alpha_price_tao" | "max_neurons" | "emission_value" | "tempo" | "miner_daily_tao" | "miner_earning_count";
+type SortKey = "netuid" | "alpha_price_tao" | "max_neurons" | "emission_value" | "tempo" | "miner_daily_tao" | "miner_earning_count" | "register_fee_tao";
 type Dir = "asc" | "desc";
 
 function SortIcon({ col, sort }: { col: SortKey; sort: { key: SortKey; dir: Dir } }) {
@@ -54,6 +54,7 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
           {th("emission_value", "Emission", "text-right")}
           {th("miner_earning_count", "Miners Earning", "text-right")}
           {th("miner_daily_tao", "Miner Daily τ", "text-right")}
+          {th("register_fee_tao", "Reg Fee (τ)", "text-right")}
           {th("tempo", "Tempo", "text-right")}
           <TableHead>Updated</TableHead>
         </TableRow>
@@ -97,6 +98,9 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
                     : s.miner_daily_tao.toFixed(2)} τ
                 </span>
               ) : "—"}
+            </TableCell>
+            <TableCell className="text-right font-mono text-sm">
+              {s.register_fee_tao != null ? `${s.register_fee_tao.toFixed(4)} τ` : "—"}
             </TableCell>
             <TableCell className="text-right">{s.tempo ?? "—"}</TableCell>
             <TableCell className="text-xs text-muted-foreground">

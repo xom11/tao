@@ -126,6 +126,16 @@ export default async function SubnetDetailPage({
             </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Register Fee (τ)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-mono">
+              {subnet.register_fee_tao != null ? subnet.register_fee_tao.toFixed(4) : "—"}
+            </p>
+          </CardContent>
+        </Card>
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Owner</CardTitle>

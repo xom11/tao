@@ -26,6 +26,7 @@ export interface SubnetOverview {
   alpha_price_tao: number | null;
   miner_daily_tao: number | null;
   miner_earning_count: number | null;
+  register_fee_tao: number | null;
   collected_at: string;
   is_my_subnet: boolean;
 }

@@ -32,7 +32,8 @@ def list_subnets():
                 s.emission_value, s.tempo, s.alpha_price_tao, s.collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet,
                 mt.miner_daily_tao,
-                mt.miner_earning_count
+                mt.miner_earning_count,
+                s.register_fee_tao
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             LEFT JOIN miner_totals mt ON mt.netuid = s.netuid
@@ -53,6 +54,7 @@ def list_subnets():
             is_my_subnet=r[9],
             miner_daily_tao=r[10],
             miner_earning_count=r[11],
+            register_fee_tao=r[12],
         )
         for r in rows
     ]
@@ -67,7 +69,7 @@ def get_subnet(netuid: int):
             SELECT DISTINCT ON (netuid)
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
                 s.emission_value, s.tempo, s.difficulty, s.immunity_period,
-                s.alpha_price_tao,
+                s.alpha_price_tao, s.register_fee_tao,
                 s.description, s.subnet_url, s.github_repo, s.discord, s.logo_url, s.subnet_contact,
                 s.collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet,
@@ -93,15 +95,16 @@ def get_subnet(netuid: int):
         immunity_period=row[8],
         immunity_period_human=blocks_to_human(row[8]),
         alpha_price_tao=row[9],
-        description=row[10],
-        subnet_url=row[11],
-        github_repo=row[12],
-        discord=row[13],
-        logo_url=row[14],
-        subnet_contact=row[15],
-        collected_at=row[16],
-        is_my_subnet=row[17],
-        notes=row[18],
+        register_fee_tao=row[10],
+        description=row[11],
+        subnet_url=row[12],
+        github_repo=row[13],
+        discord=row[14],
+        logo_url=row[15],
+        subnet_contact=row[16],
+        collected_at=row[17],
+        is_my_subnet=row[18],
+        notes=row[19],
     )
 
 

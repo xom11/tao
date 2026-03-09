@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS subnet_overview_snapshots (
     difficulty      NUMERIC,
     immunity_period INTEGER,            -- đơn vị: blocks (1 block ≈ 12s)
     alpha_price_tao DOUBLE PRECISION,  -- giá alpha token tính bằng TAO (dTAO)
+    register_fee_tao   DOUBLE PRECISION,  -- phí đăng ký miner (TAO)
     -- subnet identity (optional, set bởi owner)
     description     TEXT,
     subnet_url      TEXT,
