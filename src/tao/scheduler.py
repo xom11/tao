@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 
 import bittensor as bt
+from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from tao.collectors.coldkey_balance import ColdkeyBalanceCollector
@@ -46,7 +47,10 @@ def main() -> None:
     subnet_collector = SubnetOverviewCollector(subtensor, pool)
     balance_collector = ColdkeyBalanceCollector(subtensor, pool, settings.coldkeys)
 
-    scheduler = BlockingScheduler(timezone="UTC")
+    scheduler = BlockingScheduler(
+        timezone="UTC",
+        executors={"default": ThreadPoolExecutor(max_workers=1)},
+    )
     now = datetime.now(timezone.utc)
 
     # Subnet overview — every 72 minutes
