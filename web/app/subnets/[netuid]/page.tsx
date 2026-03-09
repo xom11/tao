@@ -158,15 +158,6 @@ export default async function SubnetDetailPage({
             </p>
           </CardContent>
         </Card>
-        <Card className="md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Owner</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-mono text-sm break-all">{subnet.owner ?? "—"}</p>
-          </CardContent>
-        </Card>
-
         {/* Neuron role stats — luôn hiện dù đang ở tab nào */}
         <Card>
           <CardHeader className="pb-1">
@@ -190,17 +181,19 @@ export default async function SubnetDetailPage({
             </p>
           </CardContent>
         </Card>
-        {owners.length > 0 && (
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-muted-foreground">Owner neurons</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400">{owners.length}</p>
-              <p className="text-xs text-muted-foreground">neuron</p>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Owner</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <p className="font-mono text-sm break-all">{subnet.owner ?? "—"}</p>
+            {owners.length > 0 && (
+              <p className="text-xs text-muted-foreground shrink-0">
+                <span className="font-medium text-amber-600 dark:text-amber-400">{owners.length}</span> neuron
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <SubnetNotes netuid={netuid} initialNotes={subnet.notes ?? null} />
