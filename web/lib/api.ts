@@ -30,22 +30,25 @@ export const api = {
   balances: () => get<Balance[]>("/api/balances"),
 
   async upsertMySubnet(netuid: number, data: { coldkey?: string; hotkey?: string; notes?: string }): Promise<void> {
-    await fetch(`${API}/api/my-subnets/${netuid}`, {
+    const res = await fetch(`${API}/api/my-subnets/${netuid}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   },
 
   async deleteMySubnet(netuid: number): Promise<void> {
-    await fetch(`${API}/api/my-subnets/${netuid}`, { method: "DELETE" });
+    const res = await fetch(`${API}/api/my-subnets/${netuid}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   },
 
   async patchNotes(netuid: number, notes: string): Promise<void> {
-    await fetch(`${API}/api/my-subnets/${netuid}/notes`, {
+    const res = await fetch(`${API}/api/my-subnets/${netuid}/notes`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notes }),
     });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   },
 };
