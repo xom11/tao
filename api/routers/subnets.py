@@ -18,7 +18,9 @@ def list_subnets():
                 ORDER BY netuid, collected_at DESC
             ),
             miner_totals AS (
-                SELECT mg.netuid, SUM(mg.daily_tao) AS miner_daily_tao
+                SELECT mg.netuid,
+                    SUM(mg.daily_tao) AS miner_daily_tao,
+                    COUNT(*) FILTER (WHERE mg.daily_tao > 0) AS miner_earning_count
                 FROM metagraph_snapshots mg
                 JOIN latest_mg ON mg.netuid = latest_mg.netuid
                     AND mg.collected_at = latest_mg.collected_at
@@ -29,7 +31,8 @@ def list_subnets():
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
                 s.emission_value, s.tempo, s.alpha_price_tao, s.collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet,
-                mt.miner_daily_tao
+                mt.miner_daily_tao,
+                mt.miner_earning_count
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             LEFT JOIN miner_totals mt ON mt.netuid = s.netuid
@@ -49,6 +52,7 @@ def list_subnets():
             collected_at=r[8],
             is_my_subnet=r[9],
             miner_daily_tao=r[10],
+            miner_earning_count=r[11],
         )
         for r in rows
     ]
@@ -66,7 +70,8 @@ def get_subnet(netuid: int):
                 s.alpha_price_tao,
                 s.description, s.subnet_url, s.github_repo, s.discord, s.logo_url, s.subnet_contact,
                 s.collected_at,
-                (ms.netuid IS NOT NULL) AS is_my_subnet
+                (ms.netuid IS NOT NULL) AS is_my_subnet,
+                ms.notes
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             WHERE s.netuid = %s
@@ -96,6 +101,7 @@ def get_subnet(netuid: int):
         subnet_contact=row[15],
         collected_at=row[16],
         is_my_subnet=row[17],
+        notes=row[18],
     )
 
 

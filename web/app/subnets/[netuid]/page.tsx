@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { NeuronTable } from "@/components/tao/NeuronTable";
 import { MinerChart } from "@/components/tao/MinerChart";
 import { SubnetHistoryChart } from "@/components/tao/SubnetHistoryChart";
+import { SubnetNotes } from "@/components/tao/SubnetNotes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -134,6 +135,8 @@ export default async function SubnetDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <SubnetNotes netuid={netuid} initialNotes={subnet.notes ?? null} />
 
       <Tabs defaultValue="metagraph">
         <TabsList>

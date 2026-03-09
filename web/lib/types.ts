@@ -25,6 +25,7 @@ export interface SubnetOverview {
   tempo: number | null;
   alpha_price_tao: number | null;
   miner_daily_tao: number | null;
+  miner_earning_count: number | null;
   collected_at: string;
   is_my_subnet: boolean;
 }
@@ -45,6 +46,7 @@ export interface SubnetDetail extends SubnetOverview {
   discord: string | null;
   logo_url: string | null;
   subnet_contact: string | null;
+  notes: string | null;
 }
 
 export interface Neuron {

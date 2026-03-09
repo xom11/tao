@@ -29,6 +29,7 @@ class SubnetOverview(BaseModel):
     tempo: int | None
     alpha_price_tao: float | None
     miner_daily_tao: float | None
+    miner_earning_count: int | None
     collected_at: datetime
     is_my_subnet: bool
 
@@ -76,6 +77,7 @@ class SubnetDetail(BaseModel):
     subnet_contact: str | None
     collected_at: datetime
     is_my_subnet: bool
+    notes: str | None
 
 
 class Neuron(BaseModel):
