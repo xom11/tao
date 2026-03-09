@@ -35,11 +35,11 @@ def _parse_schema_columns(sql: str) -> dict[str, dict[str, str]]:
         body = m.group(2)
         cols: dict[str, str] = {}
         for line in body.splitlines():
-            line = line.strip().rstrip(",")
+            line = line.strip()
             if not line or line.upper().startswith(("--", "PRIMARY", "UNIQUE", "FOREIGN", "CHECK", "CONSTRAINT")):
                 continue
-            # Tách tên cột + type (lấy trước comment --)
-            line = re.sub(r"--.*$", "", line).strip()
+            # Strip comment trước, rồi mới bỏ dấu phẩy cuối
+            line = re.sub(r"--.*$", "", line).strip().rstrip(",")
             parts = line.split()
             if len(parts) < 2:
                 continue
