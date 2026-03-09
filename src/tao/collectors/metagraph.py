@@ -24,8 +24,8 @@ class MetagraphCollector(BaseCollector):
     # Role detection — override _get_role() để plug in logic tùy chỉnh
     # ------------------------------------------------------------------
 
-    def _fetch_owner_hotkey(self) -> str | None:
-        """Lấy hotkey của owner subnet này. None nếu không tìm được."""
+    def _fetch_owner_coldkey(self) -> str | None:
+        """Lấy coldkey của owner subnet này. None nếu không tìm được."""
         try:
             for info in self.subtensor.get_all_subnets_info():
                 if int(info.netuid) == self.netuid:
@@ -44,12 +44,12 @@ class MetagraphCollector(BaseCollector):
             pass
         return None
 
-    def _get_role(self, meta, uid: int, owner_hotkey: str | None) -> str:
+    def _get_role(self, meta, uid: int, owner_coldkey: str | None) -> str:
         """
         Xác định role của neuron. Thứ tự ưu tiên: owner > validator > miner.
         Override method này để thêm logic role tùy chỉnh.
         """
-        if owner_hotkey and meta.hotkeys[uid] == owner_hotkey:
+        if owner_coldkey and meta.coldkeys[uid] == owner_coldkey:
             return "owner"
         if float(meta.validator_trust[uid]) > 0:
             return "validator"
@@ -94,10 +94,10 @@ class MetagraphCollector(BaseCollector):
 
     def collect(self) -> list[dict]:
         meta = self.subtensor.metagraph(self.netuid)
-        owner_hotkey = self._fetch_owner_hotkey()
+        owner_coldkey = self._fetch_owner_coldkey()
 
         # Tính role trước để dùng khi tính total_validator_stake
-        roles = {int(uid): self._get_role(meta, int(uid), owner_hotkey) for uid in meta.uids}
+        roles = {int(uid): self._get_role(meta, int(uid), owner_coldkey) for uid in meta.uids}
         total_validator_stake = sum(
             float(meta.stake[uid])
             for uid, role in roles.items()

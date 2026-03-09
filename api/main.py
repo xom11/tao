@@ -18,7 +18,7 @@ app = FastAPI(title="Tao Monitor API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
