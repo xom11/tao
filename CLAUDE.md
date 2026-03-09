@@ -69,7 +69,8 @@ uv sync                                              # cài Python deps
 cd web && npm install && cd ..                       # cài Node deps
 
 # Data pipeline
-uv run python scripts/init_db.py                     # khởi tạo DB schema
+uv run python scripts/init_db.py                     # khởi tạo DB schema (lần đầu)
+uv run python scripts/migrate.py                     # thêm cột còn thiếu (sau khi pull code mới)
 uv run python scripts/backfill.py                    # chạy tất cả collectors
 uv run python scripts/backfill.py --collector metagraph
 uv run python scripts/backfill.py --collector metagraph --netuid 118
