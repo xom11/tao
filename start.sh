@@ -19,8 +19,13 @@ command -v npm  >/dev/null || err "npm not found"
 [ -f .env ]     || warn ".env not found — make sure DATABASE_URL etc. are set"
 
 # --- Stop existing session if running ---
+# If we're currently inside the target session, switch away first to avoid killing our own shell
 if tmux has-session -t "$SESSION" 2>/dev/null; then
     warn "Stopping existing session '$SESSION'..."
+    if [ -n "$TMUX" ] && [ "$(tmux display-message -p '#S')" = "$SESSION" ]; then
+        tmux new-session -d -s "${SESSION}_tmp" 2>/dev/null || true
+        tmux switch-client -t "${SESSION}_tmp"
+    fi
     tmux kill-session -t "$SESSION"
 fi
 
@@ -56,6 +61,12 @@ tmux send-keys    -t "$SESSION:api" "uv run uvicorn api.main:app --host 0.0.0.0 
 
 tmux new-window   -t "$SESSION" -n "web"
 tmux send-keys    -t "$SESSION:web" "cd web && npm run start -- --port 3000" Enter
+
+# If we're inside tmux, switch to the new session and clean up temp
+if [ -n "$TMUX" ]; then
+    tmux switch-client -t "$SESSION"
+    tmux kill-session -t "${SESSION}_tmp" 2>/dev/null || true
+fi
 
 echo ""
 log "All services started in tmux session '${SESSION}'"
