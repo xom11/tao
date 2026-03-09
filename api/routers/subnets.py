@@ -194,6 +194,7 @@ def get_miner_history(netuid: int, days: int = 90, top_n: int = 20):
             JOIN top_miners t ON t.uid = m.uid
             WHERE m.netuid = %s
               AND m.role = 'miner'
+              AND m.daily_tao IS NOT NULL
               AND (%s = 0 OR m.collected_at >= NOW() - (%s || ' days')::INTERVAL)
             ORDER BY m.collected_at ASC, m.uid ASC
             """,
