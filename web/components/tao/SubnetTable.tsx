@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -23,6 +23,7 @@ function SortIcon({ col, sort }: { col: SortKey; sort: { key: SortKey; dir: Dir 
 
 export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
   const [sort, setSort] = useState<{ key: SortKey; dir: Dir }>({ key: "netuid", dir: "asc" });
+  const router = useRouter();
 
   function toggle(key: SortKey) {
     setSort((s) => s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
@@ -57,11 +58,13 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
       </TableHeader>
       <TableBody>
         {sorted.map((s) => (
-          <TableRow key={s.netuid}>
+          <TableRow
+            key={s.netuid}
+            className="cursor-pointer hover:bg-muted/50"
+            onClick={() => router.push(`/subnets/${s.netuid}`)}
+          >
             <TableCell>
-              <Link href={`/subnets/${s.netuid}`} className="font-medium hover:underline">
-                {s.netuid}
-              </Link>
+              <span className="font-medium">{s.netuid}</span>
               {s.is_my_subnet && (
                 <Badge variant="outline" className="ml-2 text-xs">⭐ mine</Badge>
               )}
