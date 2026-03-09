@@ -27,11 +27,22 @@ def _get_netuids(subtensor: bt.Subtensor) -> list[int]:
     return [info.netuid for info in subnets]
 
 
-def _run_metagraphs(subtensor: bt.Subtensor, pool) -> None:
+def _run_subnet_overview(network: str, pool) -> None:
+    subtensor = bt.Subtensor(network)
+    SubnetOverviewCollector(subtensor, pool).run()
+
+
+def _run_metagraphs(network: str, pool) -> None:
+    subtensor = bt.Subtensor(network)
     netuids = _get_netuids(subtensor)
     log.info("Collecting metagraph for %d subnets...", len(netuids))
     for netuid in netuids:
         MetagraphCollector(subtensor, pool, netuid).run()
+
+
+def _run_balances(network: str, pool, coldkeys) -> None:
+    subtensor = bt.Subtensor(network)
+    ColdkeyBalanceCollector(subtensor, pool, coldkeys).run()
 
 
 def main() -> None:
@@ -42,10 +53,7 @@ def main() -> None:
     log.info("Coldkeys: %d configured", len(settings.coldkeys))
 
     pool = get_pool()
-    subtensor = bt.Subtensor(settings.bt_network)
-
-    subnet_collector = SubnetOverviewCollector(subtensor, pool)
-    balance_collector = ColdkeyBalanceCollector(subtensor, pool, settings.coldkeys)
+    network = settings.bt_network
 
     scheduler = BlockingScheduler(
         timezone="UTC",
@@ -55,9 +63,10 @@ def main() -> None:
 
     # Subnet overview — every 72 minutes
     scheduler.add_job(
-        subnet_collector.run,
+        _run_subnet_overview,
         "interval",
         minutes=TEMPO_MINUTES,
+        args=[network, pool],
         next_run_time=now,
         id="subnet_overview",
     )
@@ -67,7 +76,7 @@ def main() -> None:
         _run_metagraphs,
         "interval",
         minutes=TEMPO_MINUTES,
-        args=[subtensor, pool],
+        args=[network, pool],
         next_run_time=now,
         id="metagraph_all",
     )
@@ -75,9 +84,10 @@ def main() -> None:
     # Balance — every 24 hours
     if settings.coldkeys:
         scheduler.add_job(
-            balance_collector.run,
+            _run_balances,
             "interval",
             hours=24,
+            args=[network, pool, settings.coldkeys],
             next_run_time=now,
             id="coldkey_balances",
         )
