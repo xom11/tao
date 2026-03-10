@@ -31,7 +31,7 @@ log "Building frontend..."
 cd web && npm install --silent && npm run build && cd ..
 
 log "Restarting services..."
-if pm2 list | grep -q "tao-api"; then
+if pm2 list | grep -q "tao"; then
     pm2 restart ecosystem.config.js
 else
     pm2 start ecosystem.config.js

@@ -4,7 +4,8 @@ const ROOT = __dirname
 module.exports = {
   apps: [
     {
-      name: 'tao-api',
+      name: 'api',
+      namespace: 'tao',
       script: 'uv',
       args: 'run uvicorn api.main:app --host 0.0.0.0 --port 8000',
       cwd: ROOT,
@@ -13,7 +14,8 @@ module.exports = {
       watch: false,
     },
     {
-      name: 'tao-scheduler',
+      name: 'scheduler',
+      namespace: 'tao',
       script: 'uv',
       args: 'run python -m tao.main',
       cwd: ROOT,
@@ -22,7 +24,8 @@ module.exports = {
       watch: false,
     },
     {
-      name: 'tao-web',
+      name: 'web',
+      namespace: 'tao',
       script: 'npm',
       args: 'start',
       cwd: path.join(ROOT, 'web'),
