@@ -57,7 +57,7 @@ def main() -> None:
 
     scheduler = BlockingScheduler(
         timezone="UTC",
-        executors={"default": ThreadPoolExecutor(max_workers=1)},
+        executors={"default": ThreadPoolExecutor(max_workers=3)},
     )
     now = datetime.now(timezone.utc)
 
