@@ -171,15 +171,6 @@ export function MinerHistoryChart({ data }: Props) {
         </LineChart>
       </ResponsiveContainer>
 
-      {/* UID color legend */}
-      <div className="flex flex-wrap gap-x-3 gap-y-1">
-        {uids.map(({ uid }, i) => (
-          <span key={uid} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <span style={{ color: uidColor(i, uids.length) }}>■</span>
-            <span className="font-mono">UID {uid}</span>
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

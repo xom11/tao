@@ -175,31 +175,20 @@ def get_subnet_history(netuid: int, days: int = 90):
 
 
 @router.get("/subnets/{netuid}/miner-history", response_model=list[MinerHistoryPoint])
-def get_miner_history(netuid: int, days: int = 90, top_n: int = 20):
+def get_miner_history(netuid: int, days: int = 90):
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
             """
-            WITH top_miners AS (
-                SELECT uid
-                FROM metagraph_snapshots
-                WHERE netuid = %s
-                  AND role = 'miner'
-                  AND daily_tao > 0
-                GROUP BY uid
-                ORDER BY AVG(daily_tao) DESC
-                LIMIT %s
-            )
-            SELECT m.collected_at, m.uid, m.hotkey, m.daily_tao
-            FROM metagraph_snapshots m
-            JOIN top_miners t ON t.uid = m.uid
-            WHERE m.netuid = %s
-              AND m.role = 'miner'
-              AND m.daily_tao IS NOT NULL
-              AND (%s = 0 OR m.collected_at >= NOW() - (%s || ' days')::INTERVAL)
-            ORDER BY m.collected_at ASC, m.uid ASC
+            SELECT collected_at, uid, hotkey, daily_tao
+            FROM metagraph_snapshots
+            WHERE netuid = %s
+              AND role = 'miner'
+              AND daily_tao IS NOT NULL
+              AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
+            ORDER BY collected_at ASC, uid ASC
             """,
-            (netuid, top_n, netuid, days, days),
+            (netuid, days, days),
         ).fetchall()
     return [
         MinerHistoryPoint(collected_at=r[0], uid=r[1], hotkey=r[2], daily_tao=r[3])
