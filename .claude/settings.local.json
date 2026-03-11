@@ -15,7 +15,8 @@
       "Bash(git:*)",
       "Bash(curl:*)",
       "Bash(psql:*)",
-      "Bash(/opt/homebrew/Cellar/postgresql@18/18.3/bin/psql:*)"
+      "Bash(/opt/homebrew/Cellar/postgresql@18/18.3/bin/psql:*)",
+      "Bash(pm2 restart:*)"
     ]
   }
 }

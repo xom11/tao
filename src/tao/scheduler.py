@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timezone
 
 import bittensor as bt
@@ -19,6 +20,25 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 TEMPO_MINUTES = 72
+_SUBTENSOR_MAX_RETRIES = 3
+_SUBTENSOR_RETRY_DELAY = 20  # seconds between retries
+
+
+def _create_subtensor(network: str) -> bt.Subtensor:
+    """Create a Subtensor connection with retry logic for transient network errors."""
+    last_exc: Exception | None = None
+    for attempt in range(_SUBTENSOR_MAX_RETRIES):
+        try:
+            return bt.Subtensor(network)
+        except Exception as e:
+            last_exc = e
+            if attempt < _SUBTENSOR_MAX_RETRIES - 1:
+                log.warning(
+                    "Subtensor connection failed (attempt %d/%d): %s. Retrying in %ds...",
+                    attempt + 1, _SUBTENSOR_MAX_RETRIES, e, _SUBTENSOR_RETRY_DELAY,
+                )
+                time.sleep(_SUBTENSOR_RETRY_DELAY)
+    raise last_exc
 
 
 def _get_netuids(subtensor: bt.Subtensor) -> list[int]:
@@ -28,20 +48,40 @@ def _get_netuids(subtensor: bt.Subtensor) -> list[int]:
 
 
 def _run_subnet_overview(network: str, pool) -> None:
-    subtensor = bt.Subtensor(network)
+    subtensor = _create_subtensor(network)
     SubnetOverviewCollector(subtensor, pool).run()
 
 
+_RECONNECT_AFTER_CONSECUTIVE_ERRORS = 3
+
+
 def _run_metagraphs(network: str, pool) -> None:
-    subtensor = bt.Subtensor(network)
+    subtensor = _create_subtensor(network)
     netuids = _get_netuids(subtensor)
     log.info("Collecting metagraph for %d subnets...", len(netuids))
+    consecutive_errors = 0
     for netuid in netuids:
-        MetagraphCollector(subtensor, pool, netuid).run()
+        ok = MetagraphCollector(subtensor, pool, netuid).run()
+        if ok:
+            consecutive_errors = 0
+        else:
+            consecutive_errors += 1
+            if consecutive_errors >= _RECONNECT_AFTER_CONSECUTIVE_ERRORS:
+                log.warning(
+                    "%d consecutive errors — reconnecting subtensor...",
+                    consecutive_errors,
+                )
+                try:
+                    subtensor = _create_subtensor(network)
+                    consecutive_errors = 0
+                    log.info("Subtensor reconnected OK")
+                except Exception as e:
+                    log.error("Reconnect failed: %s — aborting remaining subnets", e)
+                    break
 
 
 def _run_balances(network: str, pool, coldkeys) -> None:
-    subtensor = bt.Subtensor(network)
+    subtensor = _create_subtensor(network)
     ColdkeyBalanceCollector(subtensor, pool, coldkeys).run()
 
 

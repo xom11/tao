@@ -186,7 +186,6 @@ def get_miner_history(netuid: int, days: int = 90, top_n: int = 20):
                 WHERE netuid = %s
                   AND role = 'miner'
                   AND daily_tao > 0
-                  AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
                 GROUP BY uid
                 ORDER BY AVG(daily_tao) DESC
                 LIMIT %s
@@ -200,7 +199,7 @@ def get_miner_history(netuid: int, days: int = 90, top_n: int = 20):
               AND (%s = 0 OR m.collected_at >= NOW() - (%s || ' days')::INTERVAL)
             ORDER BY m.collected_at ASC, m.uid ASC
             """,
-            (netuid, days, days, top_n, netuid, days, days),
+            (netuid, top_n, netuid, days, days),
         ).fetchall()
     return [
         MinerHistoryPoint(collected_at=r[0], uid=r[1], hotkey=r[2], daily_tao=r[3])

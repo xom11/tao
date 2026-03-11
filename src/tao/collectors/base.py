@@ -18,7 +18,8 @@ class BaseCollector(ABC):
     @abstractmethod
     def save(self, data: list[dict]) -> int: ...
 
-    def run(self) -> None:
+    def run(self) -> bool:
+        """Run collect + save. Returns True on success, False on error."""
         from tao.db.queries import runs  # lazy import
 
         started_at = datetime.now(timezone.utc)
@@ -30,10 +31,12 @@ class BaseCollector(ABC):
             data = self.collect()
             rows_inserted = self.save(data)
             print(f"[{self.job_name}] OK — {rows_inserted} rows inserted")
+            return True
         except Exception as e:
             status = "error"
             error_message = str(e)
             print(f"[{self.job_name}] ERROR — {e}")
+            return False
         finally:
             finished_at = datetime.now(timezone.utc)
             runs.insert_run(
