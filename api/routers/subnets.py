@@ -13,7 +13,7 @@ def list_subnets():
         rows = conn.execute(
             """
             WITH latest_mg AS (
-                SELECT DISTINCT ON (netuid) netuid, collected_at
+                SELECT DISTINCT ON (netuid) netuid, collected_at AS mg_collected_at
                 FROM metagraph_snapshots
                 ORDER BY netuid, collected_at DESC
             ),
@@ -23,13 +23,14 @@ def list_subnets():
                     COUNT(*) FILTER (WHERE mg.daily_tao > 0) AS miner_earning_count
                 FROM metagraph_snapshots mg
                 JOIN latest_mg ON mg.netuid = latest_mg.netuid
-                    AND mg.collected_at = latest_mg.collected_at
+                    AND mg.collected_at = latest_mg.mg_collected_at
                 WHERE mg.role = 'miner' AND mg.daily_tao IS NOT NULL
                 GROUP BY mg.netuid
             )
             SELECT DISTINCT ON (s.netuid)
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
-                s.emission_value, s.tempo, s.alpha_price_tao, s.collected_at,
+                s.emission_value, s.tempo, s.alpha_price_tao,
+                GREATEST(s.collected_at, COALESCE(lm.mg_collected_at, s.collected_at)) AS collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet,
                 mt.miner_daily_tao,
                 mt.miner_earning_count,
@@ -37,6 +38,7 @@ def list_subnets():
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             LEFT JOIN miner_totals mt ON mt.netuid = s.netuid
+            LEFT JOIN latest_mg lm ON lm.netuid = s.netuid
             ORDER BY s.netuid, s.collected_at DESC
             """
         ).fetchall()
