@@ -100,4 +100,5 @@ def main() -> None:
     except (KeyboardInterrupt, SystemExit):
         log.info("Shutting down...")
     finally:
+        scheduler.shutdown(wait=True)
         close_pool()
