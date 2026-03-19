@@ -156,7 +156,7 @@ def get_subnet_history(netuid: int, days: int = 90):
     with pool.connection() as conn:
         rows = conn.execute(
             """
-            SELECT collected_at, emission_value, alpha_price_tao
+            SELECT collected_at, emission_value, alpha_price_tao, register_fee_tao
             FROM subnet_overview_snapshots
             WHERE netuid = %s
               AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
@@ -169,6 +169,7 @@ def get_subnet_history(netuid: int, days: int = 90):
             collected_at=r[0],
             emission_pct=r[1] * 100 if r[1] is not None else None,
             alpha_price_tao=r[2],
+            register_fee_tao=r[3],
         )
         for r in rows
     ]

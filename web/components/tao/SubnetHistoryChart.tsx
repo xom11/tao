@@ -32,7 +32,7 @@ function filterByRange(data: SubnetHistoryPoint[], range: Range): SubnetHistoryP
 
 interface SingleChartProps {
   data: SubnetHistoryPoint[];
-  dataKey: "emission_pct" | "alpha_price_tao";
+  dataKey: "emission_pct" | "alpha_price_tao" | "register_fee_tao";
   label: string;
   unit: string;
   color: string;
@@ -169,6 +169,14 @@ export function SubnetHistoryChart({ history }: Props) {
         unit="τ"
         color="hsl(142 71% 45%)"
         decimals={6}
+      />
+      <SingleChart
+        data={data}
+        dataKey="register_fee_tao"
+        label="Register Fee (τ)"
+        unit="τ"
+        color="hsl(38 92% 50%)"
+        decimals={4}
       />
     </div>
   );

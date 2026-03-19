@@ -39,6 +39,7 @@ class SubnetHistoryPoint(BaseModel):
     collected_at: datetime
     emission_pct: float | None   # emission_value * 100
     alpha_price_tao: float | None
+    register_fee_tao: float | None
 
 
 def blocks_to_human(blocks: int | None) -> str | None:

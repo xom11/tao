@@ -35,6 +35,7 @@ export interface SubnetHistoryPoint {
   collected_at: string;
   emission_pct: number | null;
   alpha_price_tao: number | null;
+  register_fee_tao: number | null;
 }
 
 export interface MinerHistoryPoint {

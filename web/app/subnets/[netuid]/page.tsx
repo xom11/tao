@@ -4,17 +4,20 @@ import { MinerChart } from "@/components/tao/MinerChart";
 import { SubnetHistoryChart } from "@/components/tao/SubnetHistoryChart";
 import { MinerHistoryChart } from "@/components/tao/MinerHistoryChart";
 import { SubnetNotes } from "@/components/tao/SubnetNotes";
+import { TabsWithUrl } from "@/components/tao/TabsWithUrl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
 export default async function SubnetDetailPage({
   params,
+  searchParams,
 }: {
   params: { netuid: string };
+  searchParams?: { tab?: string };
 }) {
   const BLOCKS_PER_DAY = 7200;
 
@@ -198,7 +201,7 @@ export default async function SubnetDetailPage({
 
       <SubnetNotes netuid={netuid} initialNotes={subnet.notes ?? null} />
 
-      <Tabs defaultValue="metagraph">
+      <TabsWithUrl defaultTab={searchParams?.tab ?? "metagraph"}>
         <TabsList>
           <TabsTrigger value="metagraph">Metagraph</TabsTrigger>
           <TabsTrigger value="chart">Miner Chart</TabsTrigger>
@@ -219,7 +222,7 @@ export default async function SubnetDetailPage({
         <TabsContent value="history">
           <SubnetHistoryChart history={history} />
         </TabsContent>
-      </Tabs>
+      </TabsWithUrl>
     </div>
   );
 }

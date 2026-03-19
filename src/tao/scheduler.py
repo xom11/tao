@@ -121,12 +121,12 @@ def main() -> None:
         id="metagraph_all",
     )
 
-    # Balance — every 24 hours
+    # Balance — every 72 minutes
     if settings.coldkeys:
         scheduler.add_job(
             _run_balances,
             "interval",
-            hours=24,
+            minutes=TEMPO_MINUTES,
             args=[network, pool, settings.coldkeys],
             next_run_time=now,
             id="coldkey_balances",

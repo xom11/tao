@@ -1,6 +1,6 @@
 import bittensor as bt
 
-netuid = 124
+netuid = 97
 
 subtensor = bt.Subtensor("finney")
 
