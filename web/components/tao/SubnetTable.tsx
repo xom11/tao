@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -10,8 +10,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import type { SubnetOverview } from "@/lib/types";
+
+const STARRED_KEY = "starred_subnets";
+
+function loadStarred(): Set<number> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(STARRED_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveStarred(starred: Set<number>) {
+  localStorage.setItem(STARRED_KEY, JSON.stringify(Array.from(starred)));
+}
+
+function StarButton({ netuid, starred, onToggle }: { netuid: number; starred: boolean; onToggle: (netuid: number) => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onToggle(netuid); }}
+      className="ml-2 leading-none align-middle text-base transition-colors"
+      aria-label={starred ? "Bỏ đánh dấu" : "Đánh dấu theo dõi"}
+    >
+      {starred
+        ? <span className="text-yellow-400">★</span>
+        : <span className="text-muted-foreground/30 hover:text-yellow-300">☆</span>
+      }
+    </button>
+  );
+}
 
 type SortKey = "netuid" | "alpha_price_tao" | "max_neurons" | "emission_value" | "tempo" | "miner_daily_tao" | "miner_earning_count" | "register_fee_tao";
 type Dir = "asc" | "desc";
@@ -23,7 +53,19 @@ function SortIcon({ col, sort }: { col: SortKey; sort: { key: SortKey; dir: Dir 
 
 export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
   const [sort, setSort] = useState<{ key: SortKey; dir: Dir }>({ key: "netuid", dir: "asc" });
+  const [starred, setStarred] = useState<Set<number>>(new Set());
   const router = useRouter();
+
+  useEffect(() => { setStarred(loadStarred()); }, []);
+
+  function toggleStar(netuid: number) {
+    setStarred((prev) => {
+      const next = new Set(prev);
+      next.has(netuid) ? next.delete(netuid) : next.add(netuid);
+      saveStarred(next);
+      return next;
+    });
+  }
 
   function toggle(key: SortKey) {
     setSort((s) => s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
@@ -68,9 +110,7 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
           >
             <TableCell>
               <span className="font-medium">{s.netuid}</span>
-              {s.is_my_subnet && (
-                <Badge variant="outline" className="ml-2 text-xs">⭐ mine</Badge>
-              )}
+              <StarButton netuid={s.netuid} starred={starred.has(s.netuid)} onToggle={toggleStar} />
             </TableCell>
             <TableCell>
               <span className="font-medium">{s.subnet_name ?? "—"}</span>
