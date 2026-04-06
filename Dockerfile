@@ -43,8 +43,11 @@ COPY scripts/ scripts/
 # Copy built frontend
 COPY --from=web-builder /app/web /app/web
 
-# Default port for API
+# Entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8000 3000
 
-# Default command — overridden by Procfile process types
-CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["api"]
