@@ -1,0 +1,19 @@
+FROM python:3.14-slim
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock* .python-version ./
+COPY src/ src/
+RUN touch README.md && uv sync --frozen --no-dev
+
+COPY api/ api/
+COPY scripts/ scripts/
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["api"]
