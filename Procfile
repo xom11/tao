@@ -1,2 +1,2 @@
-api: /app/entrypoint.sh api
+web: /app/entrypoint.sh api
 scheduler: /app/entrypoint.sh scheduler
