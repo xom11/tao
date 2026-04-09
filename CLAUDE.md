@@ -121,7 +121,7 @@ TAOSTATS_API_KEY=...
 - Import `tao` package qua `src/` (đã có trong uv path), `api/` module import trực tiếp
 - Reuse pool từ `tao.db.connection.get_pool()` — không tạo pool riêng
 - Mỗi router dùng `pool = get_pool()` ở đầu handler (pool đã khởi tạo qua lifespan)
-- CORS cho phép `http://localhost:3000`
+- CORS cho phép `*` (all origins)
 
 ### API endpoints
 
@@ -165,6 +165,49 @@ TAOSTATS_API_KEY=...
 - **Role**: `'validator'` nếu `validator_trust > 0`, ngược lại `'miner'` — lưu vào DB lúc collect.
 - **daily_tao**: `(emission_tao / tempo) * 7200` — tính và lưu trong collector, không tính lại ở frontend (frontend fallback nếu null).
 - **emission_value**: `float(s.tao_in_emission) * 2` — nhân đôi vì dTAO emit cả TAO side + alpha side.
+
+## Deployment (Dokku + Cloudflare Tunnel)
+
+### Kiến trúc
+```
+Browser → Cloudflare CDN → Cloudflare Tunnel → cloudflared (local)
+                                                    ↓
+                                      ┌─ port 80   → Dokku nginx → tao-web (Next.js :3000)
+                                      └─ port 8000 → Dokku nginx → tao-api (FastAPI :8000)
+```
+
+### Dokku apps
+| App | Dockerfile | Port | Domain |
+|-----|-----------|------|--------|
+| `tao-web` | `Dockerfile.web` | 3000 (nginx proxy :80) | `tao-monitor.lenamkhanh.xyz` |
+| `tao-api` | `Dockerfile.api` | 8000 (nginx proxy :8000) | `tao-api.lenamkhanh.xyz` |
+| `tao-db` | — (postgres plugin) | 5432 | — |
+
+### Cloudflare Tunnel
+- Tunnel name: `tao-server`
+- Config: `~/.cloudflared/config.yml`
+- Service: `systemctl --user restart cloudflared`
+- Ingress: `tao-monitor.lenamkhanh.xyz` → `:80`, `tao-api.lenamkhanh.xyz` → `:8000`
+
+### Deploy commands
+```bash
+just deploy-api                    # git push dokku-api main
+just deploy-web                    # git push dokku-web main
+just deploy                        # cả hai
+
+# Logs & management
+just logs-api                      # dokku logs tao-api -t
+just logs-web                      # dokku logs tao-web -t
+just logs-scheduler                # dokku logs tao-api -p scheduler -t
+just ps                            # ps:report cả hai app
+just restart-api                   # dokku ps:restart tao-api
+just restart-web                   # dokku ps:restart tao-web
+```
+
+### Lưu ý deploy
+- `tao-api` có 2 process: `web` (FastAPI) + `scheduler` (APScheduler) — cấu hình trong `Procfile` + `DOKKU_SCALE`
+- `NEXT_PUBLIC_API_URL` là build-time env — cần `dokku config:set tao-web NEXT_PUBLIC_API_URL=...` rồi rebuild
+- DB dùng Dokku postgres plugin, link qua `DATABASE_URL` env var tự động
 
 ## Thêm collector mới
 1. Tạo file `src/tao/collectors/ten_collector.py`, kế thừa `BaseCollector`
