@@ -76,7 +76,7 @@ def get_subnet(netuid: int):
     with pool.connection() as conn:
         row = conn.execute(
             """
-            SELECT DISTINCT ON (netuid)
+            SELECT
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
                 s.emission_value, s.tempo, s.difficulty, s.immunity_period,
                 s.alpha_price_tao, s.register_fee_tao,
@@ -87,7 +87,8 @@ def get_subnet(netuid: int):
             FROM subnet_overview_snapshots s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             WHERE s.netuid = %s
-            ORDER BY netuid, collected_at DESC
+            ORDER BY s.collected_at DESC
+            LIMIT 1
             """,
             (netuid,),
         ).fetchone()
@@ -189,15 +190,23 @@ def get_miner_history(netuid: int, days: int = 90):
     with pool.connection() as conn:
         rows = conn.execute(
             """
-            SELECT collected_at, uid, hotkey, daily_tao
-            FROM metagraph_snapshots
-            WHERE netuid = %s
-              AND role = 'miner'
-              AND daily_tao IS NOT NULL
-              AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
-            ORDER BY collected_at ASC, uid ASC
+            WITH daily_snapshots AS (
+                SELECT DISTINCT ON (collected_at::date)
+                    collected_at
+                FROM metagraph_snapshots
+                WHERE netuid = %s
+                  AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
+                ORDER BY collected_at::date, collected_at DESC
+            )
+            SELECT m.collected_at, m.uid, m.hotkey, m.daily_tao
+            FROM metagraph_snapshots m
+            JOIN daily_snapshots ds ON m.collected_at = ds.collected_at
+            WHERE m.netuid = %s
+              AND m.role = 'miner'
+              AND m.daily_tao IS NOT NULL
+            ORDER BY m.collected_at ASC, m.uid ASC
             """,
-            (netuid, days, days),
+            (netuid, days, days, netuid),
         ).fetchall()
     return [
         MinerHistoryPoint(collected_at=r[0], uid=r[1], hotkey=r[2], daily_tao=r[3])
