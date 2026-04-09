@@ -11,16 +11,19 @@ def list_neurons(netuid: int):
     with pool.connection() as conn:
         rows = conn.execute(
             """
-            SELECT DISTINCT ON (uid)
-                uid, hotkey, coldkey, stake_tao, validator_trust, consensus,
-                incentive, dividends, emission_tao, daily_tao, active, role, collected_at
-            FROM metagraph_snapshots
-            WHERE netuid = %s
-            ORDER BY uid, collected_at DESC
+            WITH latest AS (
+                SELECT DISTINCT ON (uid)
+                    uid, hotkey, coldkey, stake_tao, validator_trust, consensus,
+                    incentive, dividends, emission_tao, daily_tao, active, role, collected_at
+                FROM metagraph_snapshots
+                WHERE netuid = %s
+                ORDER BY uid, collected_at DESC
+            )
+            SELECT * FROM latest ORDER BY stake_tao DESC NULLS LAST LIMIT 50
             """,
             (netuid,),
         ).fetchall()
-    neurons = [
+    return [
         Neuron(
             uid=r[0],
             hotkey=r[1],
@@ -38,5 +41,3 @@ def list_neurons(netuid: int):
         )
         for r in rows
     ]
-    neurons.sort(key=lambda n: n.stake_tao or 0, reverse=True)
-    return neurons[:50]

@@ -70,6 +70,15 @@ CREATE INDEX IF NOT EXISTS idx_subnet_overview_netuid
 CREATE INDEX IF NOT EXISTS idx_metagraph_netuid_uid
     ON metagraph_snapshots (netuid, uid, collected_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_metagraph_netuid_collected
+    ON metagraph_snapshots (netuid, collected_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_metagraph_hotkey_collected
+    ON metagraph_snapshots (hotkey, netuid, collected_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_subnet_overview_collected
+    ON subnet_overview_snapshots (collected_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_collection_runs_job
     ON collection_runs (job_name, started_at DESC);
 

@@ -101,6 +101,18 @@ def migrate() -> None:
                 conn.execute(stmt)
                 any_change = True
 
+        # Create missing indexes from schema.sql
+        for m in re.finditer(
+            r"(CREATE INDEX IF NOT EXISTS \w+\s+ON .+?);",
+            schema_sql,
+            re.DOTALL | re.IGNORECASE,
+        ):
+            stmt = m.group(1)
+            idx_name = stmt.split()[5]  # CREATE INDEX IF NOT EXISTS <name>
+            print(f"  [IDX]  Ensuring {idx_name}")
+            conn.execute(stmt)
+            any_change = True
+
         conn.commit()
 
     if any_change:

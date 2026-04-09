@@ -12,7 +12,15 @@ def list_subnets():
     with pool.connection() as conn:
         rows = conn.execute(
             """
-            WITH latest_mg AS (
+            WITH latest_overview AS (
+                SELECT DISTINCT ON (netuid)
+                    netuid, subnet_name, symbol, owner, max_neurons,
+                    emission_value, tempo, alpha_price_tao, register_fee_tao,
+                    collected_at
+                FROM subnet_overview_snapshots
+                ORDER BY netuid, collected_at DESC
+            ),
+            latest_mg_time AS (
                 SELECT DISTINCT ON (netuid) netuid, collected_at AS mg_collected_at
                 FROM metagraph_snapshots
                 ORDER BY netuid, collected_at DESC
@@ -22,24 +30,24 @@ def list_subnets():
                     SUM(mg.daily_tao) AS miner_daily_tao,
                     COUNT(*) FILTER (WHERE mg.daily_tao > 0) AS miner_earning_count
                 FROM metagraph_snapshots mg
-                JOIN latest_mg ON mg.netuid = latest_mg.netuid
-                    AND mg.collected_at = latest_mg.mg_collected_at
+                JOIN latest_mg_time lmt ON mg.netuid = lmt.netuid
+                    AND mg.collected_at = lmt.mg_collected_at
                 WHERE mg.role = 'miner' AND mg.daily_tao IS NOT NULL
                 GROUP BY mg.netuid
             )
-            SELECT DISTINCT ON (s.netuid)
+            SELECT
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
                 s.emission_value, s.tempo, s.alpha_price_tao,
-                GREATEST(s.collected_at, COALESCE(lm.mg_collected_at, s.collected_at)) AS collected_at,
+                GREATEST(s.collected_at, COALESCE(lmt.mg_collected_at, s.collected_at)) AS collected_at,
                 (ms.netuid IS NOT NULL) AS is_my_subnet,
                 mt.miner_daily_tao,
                 mt.miner_earning_count,
                 s.register_fee_tao
-            FROM subnet_overview_snapshots s
+            FROM latest_overview s
             LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             LEFT JOIN miner_totals mt ON mt.netuid = s.netuid
-            LEFT JOIN latest_mg lm ON lm.netuid = s.netuid
-            ORDER BY s.netuid, s.collected_at DESC
+            LEFT JOIN latest_mg_time lmt ON lmt.netuid = s.netuid
+            ORDER BY s.netuid
             """
         ).fetchall()
     return [

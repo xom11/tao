@@ -179,7 +179,7 @@ Browser → Cloudflare CDN → Cloudflare Tunnel → cloudflared (local)
 ### Dokku apps
 | App | Dockerfile | Port | Domain |
 |-----|-----------|------|--------|
-| `tao-web` | `Dockerfile.web` | 3000 (nginx proxy :80) | `tao-monitor.lenamkhanh.xyz` |
+| `tao-web` | `Dockerfile.web` | 3000 (nginx proxy :80) | `tao.lenamkhanh.xyz` |
 | `tao-api` | `Dockerfile.api` | 8000 (nginx proxy :8000) | `tao-api.lenamkhanh.xyz` |
 | `tao-db` | — (postgres plugin) | 5432 | — |
 
@@ -187,7 +187,7 @@ Browser → Cloudflare CDN → Cloudflare Tunnel → cloudflared (local)
 - Tunnel name: `tao-server`
 - Config: `~/.cloudflared/config.yml`
 - Service: `systemctl --user restart cloudflared`
-- Ingress: `tao-monitor.lenamkhanh.xyz` → `:80`, `tao-api.lenamkhanh.xyz` → `:8000`
+- Ingress: `tao.lenamkhanh.xyz` → `:80`, `tao-api.lenamkhanh.xyz` → `:8000`
 
 ### Deploy commands
 ```bash
