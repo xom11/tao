@@ -62,23 +62,23 @@ tao/
     └── my_subnet.py       # Quản lý my_subnets qua CLI
 ```
 
-## Lệnh hay dùng
+## Lệnh hay dùng (dùng `just` — xem `justfile`)
 ```bash
 # Setup
 uv sync                                              # cài Python deps
 cd web && npm install && cd ..                       # cài Node deps
 
 # Data pipeline
-uv run python scripts/init_db.py                     # khởi tạo DB schema (lần đầu)
-uv run python scripts/migrate.py                     # thêm cột còn thiếu (sau khi pull code mới)
-uv run python scripts/backfill.py                    # chạy tất cả collectors
-uv run python scripts/backfill.py --collector metagraph
-uv run python scripts/backfill.py --collector metagraph --netuid 118
-uv run python -m tao.main                            # chạy scheduler (tự động)
+just init-db                                         # khởi tạo DB schema (lần đầu)
+just migrate                                         # thêm cột còn thiếu (sau khi pull code mới)
+just backfill                                        # chạy tất cả collectors
+just backfill --collector metagraph
+just backfill --collector metagraph --netuid 118
+just dev-scheduler                                   # chạy scheduler (tự động)
 
-# Web interface (dùng tmux để không bị ngắt)
-uv run uvicorn api.main:app --reload --port 8000     # API backend
-cd web && npm run dev                                # Frontend → http://localhost:3000
+# Web interface (dùng tmux hoặc 2 terminal)
+just dev-api                                         # API backend → http://localhost:8000
+just dev-web                                         # Frontend → http://localhost:3000
 
 # Quản lý my_subnets qua CLI (hoặc dùng web UI tại /my-subnets)
 uv run python scripts/my_subnet.py list

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/tao/ThemeProvider";
 import { Sidebar } from "@/components/tao/Sidebar";
+import { CommandPalette } from "@/components/tao/CommandPalette";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,6 +30,7 @@ export default function RootLayout({
               </div>
             </main>
           </div>
+          <CommandPalette />
           <Toaster richColors closeButton />
         </ThemeProvider>
       </body>

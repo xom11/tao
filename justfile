@@ -1,10 +1,13 @@
 # === Dev ===
 
+dev:
+    just dev-api & just dev-web & wait
+
 dev-api:
-    uv run uvicorn api.main:app --reload --port 8000
+    uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-web:
-    cd web && npm run dev
+    cd web && npm run dev -- -H 0.0.0.0
 
 dev-scheduler:
     uv run python -m tao.main
