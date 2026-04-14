@@ -4,136 +4,171 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Search } from "lucide-react";
-import type { SubnetOverview } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+const SHORTCUTS = [
+  { keys: ["Ctrl", "K"], description: "Go to subnet by ID" },
+  { keys: ["?"], description: "Show all shortcuts" },
+  { keys: ["G", "D"], description: "Go to Dashboard" },
+  { keys: ["G", "S"], description: "Go to All Subnets" },
+  { keys: ["G", "M"], description: "Go to My Subnets" },
+  { keys: ["G", "B"], description: "Go to Balances" },
+];
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [subnets, setSubnets] = React.useState<SubnetOverview[]>([]);
-  const [activeIndex, setActiveIndex] = React.useState(0);
+  const [showHelp, setShowHelp] = React.useState(false);
   const router = useRouter();
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const listRef = React.useRef<HTMLDivElement>(null);
 
-  // Cmd+K / Ctrl+K to toggle
+  // Cmd+K / Ctrl+K to open subnet search
+  // ? to show shortcuts help
+  // G+key for page navigation
   React.useEffect(() => {
+    let gPressed = false;
+    let gTimer: ReturnType<typeof setTimeout>;
+
     function onKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName;
+      const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+
+      // Ctrl+K always works
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
+        setShowHelp(false);
         setOpen((prev) => !prev);
+        return;
+      }
+
+      // Skip other shortcuts when in input fields
+      if (isInput) return;
+
+      // ? to show help
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowHelp(true);
+        setQuery("");
+        setOpen(true);
+        return;
+      }
+
+      // G + key combos for page navigation
+      if (e.key === "g" || e.key === "G") {
+        gPressed = true;
+        clearTimeout(gTimer);
+        gTimer = setTimeout(() => { gPressed = false; }, 500);
+        return;
+      }
+
+      if (gPressed) {
+        gPressed = false;
+        clearTimeout(gTimer);
+        const routes: Record<string, string> = {
+          d: "/dashboard",
+          s: "/subnets",
+          m: "/my-subnets",
+          b: "/balances",
+        };
+        const route = routes[e.key.toLowerCase()];
+        if (route) {
+          e.preventDefault();
+          router.push(route);
+        }
       }
     }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
 
-  // Fetch subnets when opened
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      clearTimeout(gTimer);
+    };
+  }, [router]);
+
+  // Reset state when dialog opens/closes
   React.useEffect(() => {
-    if (!open) return;
-    setQuery("");
-    setActiveIndex(0);
-    fetch(`${API}/api/subnets`)
-      .then((r) => r.json())
-      .then((data: SubnetOverview[]) => setSubnets(data))
-      .catch(() => {});
+    if (!open) {
+      setQuery("");
+      setShowHelp(false);
+    }
   }, [open]);
 
-  const filtered = React.useMemo(() => {
-    if (!query.trim()) return subnets;
-    const q = query.toLowerCase();
-    return subnets.filter(
-      (s) =>
-        String(s.netuid).includes(q) ||
-        (s.subnet_name && s.subnet_name.toLowerCase().includes(q)) ||
-        (s.symbol && s.symbol.toLowerCase().includes(q))
-    );
-  }, [query, subnets]);
-
-  // Reset active index when results change
-  React.useEffect(() => {
-    setActiveIndex(0);
-  }, [filtered.length]);
-
-  // Scroll active item into view
-  React.useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const active = list.children[activeIndex] as HTMLElement | undefined;
-    active?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex]);
-
-  function navigate(netuid: number) {
-    setOpen(false);
-    router.push(`/subnets/${netuid}`);
-  }
-
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" && filtered[activeIndex]) {
-      e.preventDefault();
-      navigate(filtered[activeIndex].netuid);
+  function go(e?: React.FormEvent) {
+    e?.preventDefault();
+    const id = query.trim();
+    if (!id) return;
+    // If it's a number, go directly
+    if (/^\d+$/.test(id)) {
+      setOpen(false);
+      router.push(`/subnets/${id}`);
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="p-0 gap-0 max-w-md top-[30%] translate-y-[-30%]">
-        {/* Search input */}
-        <div className="flex items-center border-b px-3">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Go to subnet... (name or ID)"
-            className="flex-1 bg-transparent py-3 px-2 text-sm outline-none placeholder:text-muted-foreground"
-            autoFocus
-          />
-          <kbd className="hidden sm:inline-flex h-5 items-center rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
-            ESC
-          </kbd>
-        </div>
-
-        {/* Results */}
-        <div ref={listRef} className="max-h-72 overflow-y-auto p-1">
-          {filtered.length === 0 && (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              {subnets.length === 0 ? "Loading..." : "No subnets found"}
+      <DialogContent hideClose className="p-0 gap-0 max-w-md top-[30%] translate-y-[-30%]">
+        {showHelp ? (
+          /* Shortcuts help view */
+          <div className="p-4">
+            <p className="text-sm font-medium mb-3">Keyboard shortcuts</p>
+            <div className="space-y-2">
+              {SHORTCUTS.map((s) => (
+                <div key={s.description} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{s.description}</span>
+                  <div className="flex items-center gap-1">
+                    {s.keys.map((k, i) => (
+                      <React.Fragment key={k}>
+                        {i > 0 && <span className="text-xs text-muted-foreground">then</span>}
+                        <kbd className="inline-flex h-5 items-center rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+                          {k}
+                        </kbd>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">
+              Press <kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 text-[10px] font-medium">ESC</kbd> to close
             </p>
-          )}
-          {filtered.map((s, i) => (
-            <button
-              key={s.netuid}
-              onClick={() => navigate(s.netuid)}
-              onMouseEnter={() => setActiveIndex(i)}
-              className={`w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm text-left transition-colors ${
-                i === activeIndex
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent/50"
-              }`}
-            >
-              <span className="font-mono text-muted-foreground w-8 text-right shrink-0">
-                {s.netuid}
-              </span>
-              <span className="truncate font-medium">
-                {s.subnet_name ?? "Unknown"}
-              </span>
-              {s.symbol && (
-                <span className="ml-auto text-xs text-muted-foreground shrink-0">
-                  {s.symbol}
+          </div>
+        ) : (
+          /* Subnet search view */
+          <form onSubmit={go}>
+            <div className="flex items-center border-b px-3">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Subnet ID (e.g. 118)"
+                className="flex-1 bg-transparent py-3 px-2 text-sm outline-none placeholder:text-muted-foreground"
+                autoFocus
+              />
+              <kbd className="hidden sm:inline-flex h-5 items-center rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+                ESC
+              </kbd>
+            </div>
+            {query.trim() && /^\d+$/.test(query.trim()) && (
+              <div className="p-1">
+                <button
+                  type="submit"
+                  className="w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm text-left bg-accent text-accent-foreground"
+                >
+                  <span className="font-mono text-muted-foreground">{query.trim()}</span>
+                  <span>Go to Subnet {query.trim()}</span>
+                </button>
+              </div>
+            )}
+            {!query.trim() && (
+              <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                Type a subnet ID and press <kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 text-[10px] font-medium mx-0.5">Enter</kbd> to go
+                <span className="block mt-1 text-xs">
+                  Press <kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 text-[10px] font-medium mx-0.5">?</kbd> for all shortcuts
                 </span>
-              )}
-            </button>
-          ))}
-        </div>
+              </div>
+            )}
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
