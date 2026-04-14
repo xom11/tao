@@ -182,7 +182,7 @@ export default async function SubnetDetailPage({
             <MinerChart neurons={neurons} tempo={subnet.tempo ?? 100} />
             <div>
               <p className="text-sm font-medium mb-3">Miner Daily TAO History</p>
-              <MinerHistoryChart data={minerHistory} />
+              <MinerHistoryChart data={minerHistory} neurons={neurons} />
             </div>
           </div>
         </TabsContent>

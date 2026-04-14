@@ -10,10 +10,11 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import type { MinerHistoryPoint } from "@/lib/types";
+import type { MinerHistoryPoint, Neuron } from "@/lib/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type Range = "7d" | "30d" | "all";
+type ColorMode = "uid" | "coldkey";
 
 const RANGES: { label: string; value: Range }[] = [
   { label: "7d", value: "7d" },
@@ -37,8 +38,8 @@ function filterByRange(data: MinerHistoryPoint[], range: Range): MinerHistoryPoi
   return data.filter((p) => new Date(p.collected_at).getTime() >= cutoff);
 }
 
-function uidColor(index: number, total: number): string {
-  const hue = Math.round((index / Math.max(total, 1)) * 300); // 0–300 để tránh màu trùng đầu/cuối
+function hslColor(index: number, total: number): string {
+  const hue = Math.round((index / Math.max(total, 1)) * 300);
   return `hsl(${hue} 70% 55%)`;
 }
 
@@ -46,13 +47,34 @@ type WideRow = Record<string, string | number>;
 
 interface Props {
   data: MinerHistoryPoint[];
+  neurons?: Neuron[];
 }
 
-export function MinerHistoryChart({ data }: Props) {
+export function MinerHistoryChart({ data, neurons }: Props) {
   const isMobile = useIsMobile();
   const [range, setRange] = useState<Range>("30d");
+  const [colorMode, setColorMode] = useState<ColorMode>("uid");
 
   const filtered = useMemo(() => filterByRange(data, range), [data, range]);
+
+  // UID → coldkey mapping from neurons
+  const uidToColdkey = useMemo(() => {
+    const map = new Map<number, string>();
+    if (neurons) {
+      for (const n of neurons) map.set(n.uid, n.coldkey);
+    }
+    return map;
+  }, [neurons]);
+
+  // Unique coldkeys (sorted) for consistent color assignment
+  const coldkeyIndex = useMemo(() => {
+    const keys = new Set<string>();
+    uidToColdkey.forEach((ck) => keys.add(ck));
+    const sorted = Array.from(keys).sort();
+    const map = new Map<string, number>();
+    sorted.forEach((ck, i) => map.set(ck, i));
+    return map;
+  }, [uidToColdkey]);
 
   // Unique UIDs sorted by avg daily_tao desc
   const uids = useMemo(() => {
@@ -69,7 +91,7 @@ export function MinerHistoryChart({ data }: Props) {
       .sort((a, b) => b.avg - a.avg);
   }, [filtered]);
 
-  // Pivot sang wide format: [{date, uid_5: tao, uid_10: tao, ...}]
+  // Pivot sang wide format
   const chartData = useMemo((): WideRow[] => {
     const byTime = new Map<string, WideRow>();
     for (const p of filtered) {
@@ -81,6 +103,17 @@ export function MinerHistoryChart({ data }: Props) {
     );
   }, [filtered]);
 
+  function getColor(uid: number, uidIndex: number): string {
+    if (colorMode === "coldkey") {
+      const ck = uidToColdkey.get(uid);
+      if (ck != null) {
+        const idx = coldkeyIndex.get(ck) ?? 0;
+        return hslColor(idx, coldkeyIndex.size);
+      }
+    }
+    return hslColor(uidIndex, uids.length);
+  }
+
   if (data.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-8 text-center">
@@ -89,24 +122,37 @@ export function MinerHistoryChart({ data }: Props) {
     );
   }
 
+  const hasColdkeys = uidToColdkey.size > 0;
+  const btnClass = (active: boolean) =>
+    `px-3 py-1 text-xs rounded-md transition-colors ${
+      active
+        ? "bg-primary text-primary-foreground"
+        : "bg-muted text-muted-foreground hover:text-foreground"
+    }`;
+
   return (
     <div className="space-y-4">
-      {/* Range selector */}
-      <div className="flex items-center gap-1">
+      {/* Controls */}
+      <div className="flex items-center gap-1 flex-wrap">
         <span className="text-xs text-muted-foreground mr-2">Range:</span>
         {RANGES.map((r) => (
-          <button
-            key={r.value}
-            onClick={() => setRange(r.value)}
-            className={`px-3 py-1 text-xs rounded-md transition-colors ${
-              range === r.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
+          <button key={r.value} onClick={() => setRange(r.value)} className={btnClass(range === r.value)}>
             {r.label}
           </button>
         ))}
+
+        {hasColdkeys && (
+          <>
+            <span className="text-xs text-muted-foreground ml-4 mr-2">Color:</span>
+            <button onClick={() => setColorMode("uid")} className={btnClass(colorMode === "uid")}>
+              UID
+            </button>
+            <button onClick={() => setColorMode("coldkey")} className={btnClass(colorMode === "coldkey")}>
+              Coldkey
+            </button>
+          </>
+        )}
+
         <span className="ml-auto text-xs text-muted-foreground">
           {uids.length} miners · {chartData.length} snapshots
         </span>
@@ -141,15 +187,22 @@ export function MinerHistoryChart({ data }: Props) {
               return (
                 <div className="rounded border bg-background px-3 py-2 text-xs shadow-md space-y-1 max-h-64 overflow-y-auto min-w-[180px]">
                   <p className="text-muted-foreground font-medium">{shortDate(label as string)}</p>
-                  {sorted.slice(0, 12).map((e) => (
-                    <p key={String(e.dataKey)} className="flex items-center gap-1.5">
-                      <span style={{ color: e.color }} className="text-[10px]">■</span>
-                      <span>UID {String(e.dataKey).replace("uid_", "")}</span>
-                      <span className="font-semibold font-mono ml-auto pl-3">
-                        {fTao(e.value as number)} τ
-                      </span>
-                    </p>
-                  ))}
+                  {sorted.slice(0, 12).map((e) => {
+                    const uid = parseInt(String(e.dataKey).replace("uid_", ""), 10);
+                    const ck = uidToColdkey.get(uid);
+                    return (
+                      <p key={String(e.dataKey)} className="flex items-center gap-1.5">
+                        <span style={{ color: e.color }} className="text-[10px]">■</span>
+                        <span>UID {uid}</span>
+                        {colorMode === "coldkey" && ck && (
+                          <span className="text-muted-foreground font-mono">{ck.slice(0, 4)}…{ck.slice(-3)}</span>
+                        )}
+                        <span className="font-semibold font-mono ml-auto pl-3">
+                          {fTao(e.value as number)} τ
+                        </span>
+                      </p>
+                    );
+                  })}
                   {sorted.length > 12 && (
                     <p className="text-muted-foreground">+{sorted.length - 12} more</p>
                   )}
@@ -162,7 +215,7 @@ export function MinerHistoryChart({ data }: Props) {
               key={uid}
               type="monotone"
               dataKey={`uid_${uid}`}
-              stroke={uidColor(i, uids.length)}
+              stroke={getColor(uid, i)}
               dot={false}
               strokeWidth={1.5}
               connectNulls={false}
@@ -172,7 +225,6 @@ export function MinerHistoryChart({ data }: Props) {
           ))}
         </LineChart>
       </ResponsiveContainer>
-
     </div>
   );
 }
