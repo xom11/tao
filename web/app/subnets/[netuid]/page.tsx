@@ -46,9 +46,7 @@ export default async function SubnetDetailPage({
   const validators = neurons.filter((n) => n.role === "validator");
   const miners = neurons.filter((n) => n.role === "miner");
   const owners = neurons.filter((n) => n.role === "owner");
-  const validatorDaily = validators.reduce((s, n) => s + calcDaily(n), 0);
   const minerDaily = miners.reduce((s, n) => s + calcDaily(n), 0);
-  const validatorsEarning = validators.filter((n) => calcDaily(n) > 0).length;
   const minersEarning = miners.filter((n) => calcDaily(n) > 0).length;
 
   function fTao(v: number) {
@@ -151,22 +149,13 @@ export default async function SubnetDetailPage({
           </div>
         </Card>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-3 md:p-4">
-            <p className="text-xs text-muted-foreground">Validators — Daily TAO</p>
-            <p className="text-sm md:text-lg font-bold font-mono mt-1">{fTao(validatorDaily)} τ</p>
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">{validatorsEarning}/{validators.length}</span> earning
-            </p>
-          </Card>
-          <Card className="p-3 md:p-4">
-            <p className="text-xs text-muted-foreground">Miners — Daily TAO</p>
-            <p className="text-sm md:text-lg font-bold font-mono text-green-600 dark:text-green-400 mt-1">{fTao(minerDaily)} τ</p>
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
-            </p>
-          </Card>
-        </div>
+        <Card className="p-3 md:p-4">
+          <p className="text-xs text-muted-foreground">Miners — Daily TAO</p>
+          <p className="text-sm md:text-lg font-bold font-mono text-green-600 dark:text-green-400 mt-1">{fTao(minerDaily)} τ</p>
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
+          </p>
+        </Card>
 
         <Card className="p-3 md:p-4">
           <div className="flex items-center justify-between gap-3">
