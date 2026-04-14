@@ -149,24 +149,18 @@ export default async function SubnetDetailPage({
           </div>
         </Card>
 
-        <Card className="p-3 md:p-4">
-          <p className="text-xs text-muted-foreground">Miners — Daily TAO</p>
-          <p className="text-sm md:text-lg font-bold font-mono text-green-600 dark:text-green-400 mt-1">{fTao(minerDaily)} τ</p>
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
-          </p>
-        </Card>
-
-        <Card className="p-3 md:p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Owner</p>
-              <p className="font-mono text-xs md:text-sm truncate mt-0.5">{subnet.owner ?? "—"}</p>
+        <Card className="p-3 md:p-4 space-y-2">
+          <div className="flex items-center gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Miner Daily TAO</p>
+              <p className="text-sm font-bold font-mono text-green-600 dark:text-green-400">{fTao(minerDaily)} τ <span className="text-xs font-normal text-muted-foreground">{minersEarning}/{miners.length} earning</span></p>
             </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground shrink-0">Owner</span>
+            <span className="font-mono truncate">{subnet.owner ?? "—"}</span>
             {owners.length > 0 && (
-              <p className="text-xs text-muted-foreground shrink-0">
-                <span className="font-medium text-amber-600 dark:text-amber-400">{owners.length}</span> neuron
-              </p>
+              <span className="text-muted-foreground shrink-0">· <span className="font-medium text-amber-600 dark:text-amber-400">{owners.length}</span> neuron</span>
             )}
           </div>
         </Card>
