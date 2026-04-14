@@ -114,96 +114,72 @@ export default async function SubnetDetailPage({
         </div>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Alpha Price (τ)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg md:text-2xl font-bold font-mono">
-              {subnet.alpha_price_tao != null ? subnet.alpha_price_tao.toFixed(6) : "—"}
-            </p>
-          </CardContent>
+      {/* Stats */}
+      <div className="space-y-3">
+        <Card className="p-3 md:p-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-x-4 gap-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Alpha Price</p>
+              <p className="text-sm md:text-base font-bold font-mono">
+                {subnet.alpha_price_tao != null ? subnet.alpha_price_tao.toFixed(6) : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Emission</p>
+              <p className="text-sm md:text-base font-bold">
+                {subnet.emission_value != null ? `${(subnet.emission_value * 100).toFixed(2)}%` : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Tempo</p>
+              <p className="text-sm md:text-base font-bold">{subnet.tempo ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Max Neurons</p>
+              <p className="text-sm md:text-base font-bold">{subnet.max_neurons ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Immunity</p>
+              <p className="text-sm md:text-base font-bold">{subnet.immunity_period_human ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Reg Fee</p>
+              <p className="text-sm md:text-base font-bold font-mono">
+                {subnet.register_fee_tao != null ? `${subnet.register_fee_tao.toFixed(4)} τ` : "—"}
+              </p>
+            </div>
+          </div>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Max Neurons</CardTitle>
-          </CardHeader>
-          <CardContent><p className="text-lg md:text-2xl font-bold">{subnet.max_neurons ?? "—"}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Emission</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg md:text-2xl font-bold">
-              {subnet.emission_value != null ? `${(subnet.emission_value * 100).toFixed(2)}%` : "—"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Tempo</CardTitle>
-          </CardHeader>
-          <CardContent><p className="text-lg md:text-2xl font-bold">{subnet.tempo ?? "—"}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Immunity Period</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg md:text-2xl font-bold">{subnet.immunity_period_human ?? "—"}</p>
-            <p className="text-xs text-muted-foreground">
-              {subnet.immunity_period != null ? `${subnet.immunity_period} blocks` : ""}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Register Fee (τ)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg md:text-2xl font-bold font-mono">
-              {subnet.register_fee_tao != null ? subnet.register_fee_tao.toFixed(4) : "—"}
-            </p>
-          </CardContent>
-        </Card>
-        {/* Neuron role stats — luôn hiện dù đang ở tab nào */}
-        <Card>
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm text-muted-foreground">Validators — Daily TAO</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-base md:text-xl font-bold font-mono">{fTao(validatorDaily)} τ</p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="p-3 md:p-4">
+            <p className="text-xs text-muted-foreground">Validators — Daily TAO</p>
+            <p className="text-sm md:text-lg font-bold font-mono mt-1">{fTao(validatorDaily)} τ</p>
             <p className="text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{validatorsEarning}/{validators.length}</span> earning
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm text-muted-foreground">Miners — Daily TAO</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold font-mono text-green-600 dark:text-green-400">{fTao(minerDaily)} τ</p>
+          </Card>
+          <Card className="p-3 md:p-4">
+            <p className="text-xs text-muted-foreground">Miners — Daily TAO</p>
+            <p className="text-sm md:text-lg font-bold font-mono text-green-600 dark:text-green-400 mt-1">{fTao(minerDaily)} τ</p>
             <p className="text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{minersEarning}/{miners.length}</span> earning
             </p>
-          </CardContent>
-        </Card>
-        <Card className="md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Owner</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4">
-            <p className="font-mono text-sm break-all">{subnet.owner ?? "—"}</p>
+          </Card>
+        </div>
+
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Owner</p>
+              <p className="font-mono text-xs md:text-sm truncate mt-0.5">{subnet.owner ?? "—"}</p>
+            </div>
             {owners.length > 0 && (
               <p className="text-xs text-muted-foreground shrink-0">
                 <span className="font-medium text-amber-600 dark:text-amber-400">{owners.length}</span> neuron
               </p>
             )}
-          </CardContent>
+          </div>
         </Card>
       </div>
 
