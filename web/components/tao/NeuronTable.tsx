@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -30,6 +30,25 @@ function fTao(v: number) {
 
 function f4(v: number | null) {
   return v == null ? "—" : v.toFixed(4);
+}
+
+function CopyText({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [text]);
+  return (
+    <span
+      onClick={(e) => { e.stopPropagation(); copy(); }}
+      className="cursor-pointer hover:text-foreground transition-colors"
+      title="Click to copy"
+    >
+      {copied ? <span className="text-green-500">copied!</span> : text}
+    </span>
+  );
 }
 
 function SortIcon({ col, sort }: { col: SortKey; sort: { key: SortKey; dir: Dir } }) {
@@ -127,8 +146,12 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
                     <Badge variant="outline">M</Badge>
                   ) : "—"}
                 </TableCell>
-                <TableCell className="hidden md:table-cell font-mono text-xs max-w-[120px] truncate">{n.hotkey}</TableCell>
-                <TableCell className="hidden md:table-cell font-mono text-xs max-w-[120px] truncate">{n.coldkey}</TableCell>
+                <TableCell className="hidden md:table-cell font-mono text-xs max-w-[120px] truncate">
+                  <CopyText text={n.hotkey} />
+                </TableCell>
+                <TableCell className="hidden md:table-cell font-mono text-xs max-w-[120px] truncate">
+                  <CopyText text={n.coldkey} />
+                </TableCell>
                 <TableCell className="text-right">{f4(n.stake_tao)}</TableCell>
                 <TableCell className="text-right">{f4(n.incentive)}</TableCell>
                 <TableCell className="hidden md:table-cell text-right">{f4(n.dividends)}</TableCell>
