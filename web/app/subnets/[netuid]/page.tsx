@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +23,19 @@ export default async function SubnetDetailPage({
   const BLOCKS_PER_DAY = 7200;
 
   const netuid = parseInt(params.netuid, 10);
-  const [subnet, neurons, history, minerHistory] = await Promise.all([
-    api.subnet(netuid),
-    api.neurons(netuid),
-    api.subnetHistory(netuid),
-    api.minerHistory(netuid),
-  ]);
+  if (isNaN(netuid)) notFound();
+
+  let subnet, neurons, history, minerHistory;
+  try {
+    [subnet, neurons, history, minerHistory] = await Promise.all([
+      api.subnet(netuid),
+      api.neurons(netuid),
+      api.subnetHistory(netuid),
+      api.minerHistory(netuid),
+    ]);
+  } catch {
+    notFound();
+  }
 
   const tempo = subnet.tempo ?? 100;
   function calcDaily(n: { daily_tao: number | null; emission_tao: number | null }) {
