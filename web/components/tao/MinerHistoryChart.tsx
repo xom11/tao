@@ -54,6 +54,7 @@ export function MinerHistoryChart({ data, neurons }: Props) {
   const isMobile = useIsMobile();
   const [range, setRange] = useState<Range>("30d");
   const [colorMode, setColorMode] = useState<ColorMode>("uid");
+  const [filter, setFilter] = useState("");
 
   const filtered = useMemo(() => filterByRange(data, range), [data, range]);
 
@@ -90,6 +91,19 @@ export function MinerHistoryChart({ data, neurons }: Props) {
       .map(([uid, { sum, count, hotkey }]) => ({ uid, avg: sum / count, hotkey }))
       .sort((a, b) => b.avg - a.avg);
   }, [filtered]);
+
+  // Filter UIDs by search text
+  const visibleUids = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return uids;
+    return uids.filter(({ uid, hotkey }) => {
+      if (String(uid).includes(q)) return true;
+      if (hotkey.toLowerCase().startsWith(q)) return true;
+      const ck = uidToColdkey.get(uid);
+      if (ck && ck.toLowerCase().startsWith(q)) return true;
+      return false;
+    });
+  }, [uids, filter, uidToColdkey]);
 
   // Pivot sang wide format
   const chartData = useMemo((): WideRow[] => {
@@ -154,9 +168,17 @@ export function MinerHistoryChart({ data, neurons }: Props) {
         )}
 
         <span className="ml-auto text-xs text-muted-foreground">
-          {uids.length} miners · {chartData.length} snapshots
+          {visibleUids.length !== uids.length ? `${visibleUids.length}/` : ""}{uids.length} miners · {chartData.length} snapshots
         </span>
       </div>
+
+      {/* Filter */}
+      <input
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        placeholder="Filter by UID, hotkey, or coldkey..."
+        className="w-full md:w-64 px-3 py-1.5 text-xs rounded-md border bg-transparent outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+      />
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 380}>
@@ -210,7 +232,7 @@ export function MinerHistoryChart({ data, neurons }: Props) {
               );
             }}
           />
-          {uids.map(({ uid }, i) => (
+          {visibleUids.map(({ uid }, i) => (
             <Line
               key={uid}
               type="monotone"
