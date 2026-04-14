@@ -85,7 +85,51 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
   );
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <>
+    {/* Mobile card layout */}
+    <div className="md:hidden space-y-2">
+      {sorted.map((s) => (
+        <div
+          key={s.netuid}
+          className="rounded-md border p-3 space-y-2 active:bg-muted/50"
+          onClick={() => router.push(`/subnets/${s.netuid}`)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-medium">{s.netuid}</span>
+              <StarButton netuid={s.netuid} starred={starred.has(s.netuid)} onToggle={toggleStar} />
+            </div>
+            <span className="text-sm font-medium truncate ml-2">
+              {s.subnet_name ?? "—"}
+              {s.symbol && <span className="ml-1 text-xs text-muted-foreground">{s.symbol}</span>}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <p className="text-muted-foreground">Alpha</p>
+              <p className="font-mono">{s.alpha_price_tao != null ? s.alpha_price_tao.toFixed(4) : "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Emission</p>
+              <p>{s.emission_value != null ? `${(s.emission_value * 100).toFixed(2)}%` : "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Miner Daily</p>
+              <p className="font-mono">
+                {s.miner_daily_tao != null && s.miner_daily_tao > 0 ? (
+                  <span className="text-green-600 dark:text-green-400">
+                    {s.miner_daily_tao >= 1000 ? `${(s.miner_daily_tao / 1000).toFixed(2)}k` : s.miner_daily_tao.toFixed(2)} τ
+                  </span>
+                ) : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Desktop table */}
+    <div className="hidden md:block overflow-x-auto rounded-md border">
     <Table>
       <TableHeader>
         <TableRow>
@@ -151,5 +195,6 @@ export function SubnetTable({ subnets }: { subnets: SubnetOverview[] }) {
       </TableBody>
     </Table>
     </div>
+    </>
   );
 }

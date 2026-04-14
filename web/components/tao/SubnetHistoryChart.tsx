@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import type { SubnetHistoryPoint } from "@/lib/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Range = "7d" | "30d" | "all";
 
@@ -40,6 +41,7 @@ interface SingleChartProps {
 }
 
 function SingleChart({ data, dataKey, label, unit, color, decimals = 4 }: SingleChartProps) {
+  const isMobile = useIsMobile();
   const values = data.map((d) => d[dataKey]).filter((v): v is number => v != null);
   const min = values.length ? Math.min(...values) : 0;
   const max = values.length ? Math.max(...values) : 1;
@@ -53,7 +55,7 @@ function SingleChart({ data, dataKey, label, unit, color, decimals = 4 }: Single
           Not enough data points yet.
         </p>
       ) : (
-        <ResponsiveContainer width="100%" height={180}>
+        <ResponsiveContainer width="100%" height={isMobile ? 140 : 180}>
           <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
@@ -72,11 +74,11 @@ function SingleChart({ data, dataKey, label, unit, color, decimals = 4 }: Single
             />
             <YAxis
               domain={[min - pad, max + pad]}
-              tickFormatter={(v) => fmt(v, decimals)}
+              tickFormatter={(v) => fmt(v, isMobile ? Math.min(decimals, 2) : decimals)}
               tick={{ fontSize: 10 }}
               tickLine={false}
               axisLine={false}
-              width={52}
+              width={isMobile ? 40 : 52}
             />
             <Tooltip
               content={({ active, payload, label: lbl }) => {

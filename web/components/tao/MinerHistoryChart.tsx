@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import type { MinerHistoryPoint } from "@/lib/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Range = "7d" | "30d" | "all";
 
@@ -48,6 +49,7 @@ interface Props {
 }
 
 export function MinerHistoryChart({ data }: Props) {
+  const isMobile = useIsMobile();
   const [range, setRange] = useState<Range>("30d");
 
   const filtered = useMemo(() => filterByRange(data, range), [data, range]);
@@ -111,8 +113,8 @@ export function MinerHistoryChart({ data }: Props) {
       </div>
 
       {/* Chart */}
-      <ResponsiveContainer width="100%" height={380}>
-        <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+      <ResponsiveContainer width="100%" height={isMobile ? 240 : 380}>
+        <LineChart data={chartData} margin={{ top: 8, right: isMobile ? 8 : 16, left: isMobile ? 0 : 8, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="date"
@@ -127,8 +129,8 @@ export function MinerHistoryChart({ data }: Props) {
             tick={{ fontSize: 10 }}
             tickLine={false}
             axisLine={false}
-            width={60}
-            label={{ value: "Daily TAO (τ)", angle: -90, position: "left", offset: 16, fontSize: 11 }}
+            width={isMobile ? 40 : 60}
+            label={isMobile ? undefined : { value: "Daily TAO (τ)", angle: -90, position: "left", offset: 16, fontSize: 11 }}
           />
           <Tooltip
             content={({ active, payload, label }) => {

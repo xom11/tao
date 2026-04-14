@@ -21,7 +21,7 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">{t.label}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{t.value}</p>
+            <p className="text-lg md:text-2xl font-bold">{t.value}</p>
           </CardContent>
         </Card>
       ))}

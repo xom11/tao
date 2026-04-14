@@ -8,7 +8,7 @@ export default async function SubnetsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">All Subnets ({subnets.length})</h1>
+      <h1 className="text-xl md:text-2xl font-bold">All Subnets ({subnets.length})</h1>
       <SubnetTable subnets={subnets} />
     </div>
   );

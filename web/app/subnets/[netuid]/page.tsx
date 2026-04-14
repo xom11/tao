@@ -83,7 +83,7 @@ export default async function SubnetDetailPage({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-xl md:text-2xl font-bold">
               {subnet.subnet_name ?? `Subnet ${netuid}`}
             </h1>
             {subnet.symbol && (
@@ -121,7 +121,7 @@ export default async function SubnetDetailPage({
             <CardTitle className="text-sm text-muted-foreground">Alpha Price (τ)</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold font-mono">
+            <p className="text-lg md:text-2xl font-bold font-mono">
               {subnet.alpha_price_tao != null ? subnet.alpha_price_tao.toFixed(6) : "—"}
             </p>
           </CardContent>
@@ -130,14 +130,14 @@ export default async function SubnetDetailPage({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Max Neurons</CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{subnet.max_neurons ?? "—"}</p></CardContent>
+          <CardContent><p className="text-lg md:text-2xl font-bold">{subnet.max_neurons ?? "—"}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Emission</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
+            <p className="text-lg md:text-2xl font-bold">
               {subnet.emission_value != null ? `${(subnet.emission_value * 100).toFixed(2)}%` : "—"}
             </p>
           </CardContent>
@@ -146,14 +146,14 @@ export default async function SubnetDetailPage({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Tempo</CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{subnet.tempo ?? "—"}</p></CardContent>
+          <CardContent><p className="text-lg md:text-2xl font-bold">{subnet.tempo ?? "—"}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Immunity Period</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{subnet.immunity_period_human ?? "—"}</p>
+            <p className="text-lg md:text-2xl font-bold">{subnet.immunity_period_human ?? "—"}</p>
             <p className="text-xs text-muted-foreground">
               {subnet.immunity_period != null ? `${subnet.immunity_period} blocks` : ""}
             </p>
@@ -164,7 +164,7 @@ export default async function SubnetDetailPage({
             <CardTitle className="text-sm text-muted-foreground">Register Fee (τ)</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold font-mono">
+            <p className="text-lg md:text-2xl font-bold font-mono">
               {subnet.register_fee_tao != null ? subnet.register_fee_tao.toFixed(4) : "—"}
             </p>
           </CardContent>
@@ -175,7 +175,7 @@ export default async function SubnetDetailPage({
             <CardTitle className="text-sm text-muted-foreground">Validators — Daily TAO</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-bold font-mono">{fTao(validatorDaily)} τ</p>
+            <p className="text-base md:text-xl font-bold font-mono">{fTao(validatorDaily)} τ</p>
             <p className="text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{validatorsEarning}/{validators.length}</span> earning
             </p>

@@ -24,7 +24,7 @@ export function CollectionRunsTable({ runs }: { runs: CollectionRun[] }) {
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Rows</TableHead>
           <TableHead className="text-right">Duration</TableHead>
-          <TableHead>Started</TableHead>
+          <TableHead className="hidden md:table-cell">Started</TableHead>
           <TableHead>Error</TableHead>
         </TableRow>
       </TableHeader>
@@ -39,10 +39,10 @@ export function CollectionRunsTable({ runs }: { runs: CollectionRun[] }) {
             </TableCell>
             <TableCell className="text-right">{r.rows_inserted}</TableCell>
             <TableCell className="text-right">{fmtDuration(r.started_at, r.finished_at)}</TableCell>
-            <TableCell className="text-xs text-muted-foreground">
+            <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
               {new Date(r.started_at).toLocaleString()}
             </TableCell>
-            <TableCell className="text-xs text-red-500 max-w-xs truncate">
+            <TableCell className="text-xs text-red-500 max-w-[150px] md:max-w-xs truncate">
               {r.error_message ?? ""}
             </TableCell>
           </TableRow>

@@ -101,14 +101,14 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
           <TableRow>
             {th("uid", "UID", "text-right")}
             <TableHead>Role</TableHead>
-            <TableHead>Hotkey</TableHead>
-            <TableHead>Coldkey</TableHead>
+            <TableHead className="hidden md:table-cell">Hotkey</TableHead>
+            <TableHead className="hidden md:table-cell">Coldkey</TableHead>
             {th("stake_tao", "Stake (TAO)", "text-right")}
             {th("incentive", "Incentive", "text-right")}
-            {th("dividends", "Dividends", "text-right")}
-            {th("emission_tao", "Emission/tempo", "text-right")}
+            {th("dividends", "Dividends", "text-right hidden md:table-cell")}
+            {th("emission_tao", "Emission/tempo", "text-right hidden md:table-cell")}
             {th("daily_tao", "Daily TAO", "text-right")}
-            {th("validator_trust", "Trust", "text-right")}
+            {th("validator_trust", "Trust", "text-right hidden md:table-cell")}
             <TableHead>Active</TableHead>
           </TableRow>
         </TableHeader>
@@ -127,16 +127,16 @@ export function NeuronTable({ neurons, tempo }: { neurons: Neuron[]; tempo: numb
                     <Badge variant="outline">M</Badge>
                   ) : "—"}
                 </TableCell>
-                <TableCell className="font-mono text-xs max-w-[120px] truncate">{n.hotkey}</TableCell>
-                <TableCell className="font-mono text-xs max-w-[120px] truncate">{n.coldkey}</TableCell>
+                <TableCell className="hidden md:table-cell font-mono text-xs max-w-[120px] truncate">{n.hotkey}</TableCell>
+                <TableCell className="hidden md:table-cell font-mono text-xs max-w-[120px] truncate">{n.coldkey}</TableCell>
                 <TableCell className="text-right">{f4(n.stake_tao)}</TableCell>
                 <TableCell className="text-right">{f4(n.incentive)}</TableCell>
-                <TableCell className="text-right">{f4(n.dividends)}</TableCell>
-                <TableCell className="text-right">{f4(n.emission_tao)}</TableCell>
+                <TableCell className="hidden md:table-cell text-right">{f4(n.dividends)}</TableCell>
+                <TableCell className="hidden md:table-cell text-right">{f4(n.emission_tao)}</TableCell>
                 <TableCell className="text-right font-mono">
                   {daily > 0 ? <span className="text-green-600 dark:text-green-400">{fTao(daily)} τ</span> : "—"}
                 </TableCell>
-                <TableCell className="text-right">{f4(n.validator_trust)}</TableCell>
+                <TableCell className="hidden md:table-cell text-right">{f4(n.validator_trust)}</TableCell>
                 <TableCell>
                   {n.active == null ? "—" : (
                     <Badge variant={n.active ? "secondary" : "outline"}>{n.active ? "yes" : "no"}</Badge>

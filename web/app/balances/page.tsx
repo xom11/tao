@@ -15,7 +15,7 @@ export default async function BalancesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Coldkey Balances</h1>
+      <h1 className="text-xl md:text-2xl font-bold">Coldkey Balances</h1>
       <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
@@ -28,7 +28,7 @@ export default async function BalancesPage() {
         <TableBody>
           {balances.map((b) => (
             <TableRow key={b.coldkey}>
-              <TableCell className="font-mono text-xs">{b.coldkey}</TableCell>
+              <TableCell className="font-mono text-xs max-w-[180px] truncate">{b.coldkey}</TableCell>
               <TableCell className="text-right font-medium">
                 {b.balance_tao?.toFixed(4) ?? "—"}
               </TableCell>
