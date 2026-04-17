@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: scan staged changes for secrets using gitleaks.
+# Blocks the commit if any secret is detected.
+#
+
+if ! command -v gitleaks &>/dev/null; then
+    echo "⚠  gitleaks not found — skipping secret scan."
+    echo "   Install: https://github.com/gitleaks/gitleaks#installing"
+    exit 0
+fi
+
+echo "🔍 Scanning staged changes for secrets..."
+
+gitleaks git --staged --verbose 2>&1
+status=$?
+
+if [ $status -ne 0 ]; then
+    echo ""
+    echo "❌ Secret detected! Commit blocked."
+    echo ""
+    echo "Fix options:"
+    echo "  1. Remove the secret from your code"
+    echo "  2. Add a .gitleaksignore entry if it's a false positive"
+    echo "  3. Skip this check (NOT recommended): git commit --no-verify"
+    exit 1
+fi
+
+echo "✅ No secrets found."
+exit 0
