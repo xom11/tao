@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from tao.db.connection import get_pool
-from tao.db.queries import my_subnets as my_subnets_q
-from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MinerHistoryPoint, MySubnet, MySubnetUpsert, NotesUpdate, blocks_to_human
+from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MinerHistoryPoint, blocks_to_human
 
 router = APIRouter()
 
@@ -39,12 +38,10 @@ def list_subnets():
                 s.netuid, s.subnet_name, s.symbol, s.owner, s.max_neurons,
                 s.emission_value, s.tempo, s.alpha_price_tao,
                 GREATEST(s.collected_at, COALESCE(lmt.mg_collected_at, s.collected_at)) AS collected_at,
-                (ms.netuid IS NOT NULL) AS is_my_subnet,
                 mt.miner_daily_tao,
                 mt.miner_earning_count,
                 s.register_fee_tao
             FROM latest_overview s
-            LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             LEFT JOIN miner_totals mt ON mt.netuid = s.netuid
             LEFT JOIN latest_mg_time lmt ON lmt.netuid = s.netuid
             ORDER BY s.netuid
@@ -61,10 +58,9 @@ def list_subnets():
             tempo=r[6],
             alpha_price_tao=r[7],
             collected_at=r[8],
-            is_my_subnet=r[9],
-            miner_daily_tao=r[10],
-            miner_earning_count=r[11],
-            register_fee_tao=r[12],
+            miner_daily_tao=r[9],
+            miner_earning_count=r[10],
+            register_fee_tao=r[11],
         )
         for r in rows
     ]
@@ -81,11 +77,8 @@ def get_subnet(netuid: int):
                 s.emission_value, s.tempo, s.difficulty, s.immunity_period,
                 s.alpha_price_tao, s.register_fee_tao,
                 s.description, s.subnet_url, s.github_repo, s.discord, s.logo_url, s.subnet_contact,
-                s.collected_at,
-                (ms.netuid IS NOT NULL) AS is_my_subnet,
-                ms.notes
+                s.collected_at
             FROM subnet_overview_snapshots s
-            LEFT JOIN my_subnets ms ON ms.netuid = s.netuid
             WHERE s.netuid = %s
             ORDER BY s.collected_at DESC
             LIMIT 1
@@ -114,49 +107,7 @@ def get_subnet(netuid: int):
         logo_url=row[15],
         subnet_contact=row[16],
         collected_at=row[17],
-        is_my_subnet=row[18],
-        notes=row[19],
     )
-
-
-@router.get("/my-subnets", response_model=list[MySubnet])
-def list_my_subnets():
-    pool = get_pool()
-    with pool.connection() as conn:
-        rows = conn.execute(
-            """
-            SELECT ms.netuid, ms.coldkey, ms.hotkey, ms.notes, ms.updated_at,
-                mg.stake_tao, mg.incentive, mg.emission_tao, mg.active,
-                so.emission_value
-            FROM my_subnets ms
-            LEFT JOIN LATERAL (
-                SELECT stake_tao, incentive, emission_tao, active
-                FROM metagraph_snapshots
-                WHERE netuid = ms.netuid AND hotkey = ms.hotkey
-                ORDER BY collected_at DESC LIMIT 1
-            ) mg ON true
-            LEFT JOIN LATERAL (
-                SELECT emission_value FROM subnet_overview_snapshots
-                WHERE netuid = ms.netuid ORDER BY collected_at DESC LIMIT 1
-            ) so ON true
-            ORDER BY ms.netuid
-            """
-        ).fetchall()
-    return [
-        MySubnet(
-            netuid=r[0],
-            coldkey=r[1],
-            hotkey=r[2],
-            notes=r[3],
-            updated_at=r[4],
-            stake_tao=r[5],
-            incentive=r[6],
-            emission_tao=r[7],
-            active=r[8],
-            subnet_emission_value=r[9],
-        )
-        for r in rows
-    ]
 
 
 @router.get("/subnets/{netuid}/history", response_model=list[SubnetHistoryPoint])
@@ -214,24 +165,3 @@ def get_miner_history(netuid: int, days: int = Query(90, ge=0, le=365)):
     ]
 
 
-@router.put("/my-subnets/{netuid}")
-def upsert_my_subnet(netuid: int, body: MySubnetUpsert):
-    pool = get_pool()
-    my_subnets_q.upsert(pool, netuid, coldkey=body.coldkey, hotkey=body.hotkey, notes=body.notes)
-    return {"ok": True}
-
-
-@router.delete("/my-subnets/{netuid}")
-def delete_my_subnet(netuid: int):
-    pool = get_pool()
-    found = my_subnets_q.delete(pool, netuid)
-    if not found:
-        raise HTTPException(status_code=404, detail="Subnet not found")
-    return {"ok": True}
-
-
-@router.patch("/my-subnets/{netuid}/notes")
-def patch_notes(netuid: int, body: NotesUpdate):
-    pool = get_pool()
-    my_subnets_q.update_notes(pool, netuid, body.notes)
-    return {"ok": True}

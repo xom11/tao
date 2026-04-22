@@ -14,7 +14,6 @@ def get_stats():
             SELECT
                 COUNT(*) FILTER (WHERE started_at >= NOW() - INTERVAL '24 hours') AS runs_24h,
                 COUNT(*) FILTER (WHERE started_at >= NOW() - INTERVAL '24 hours' AND status = 'error') AS errors_24h,
-                (SELECT COUNT(*) FROM my_subnets) AS my_subnets_count,
                 MAX(finished_at) AS last_run_at
             FROM collection_runs
             """
@@ -22,8 +21,7 @@ def get_stats():
     return DashboardStats(
         runs_24h=row[0],
         errors_24h=row[1],
-        my_subnets_count=row[2],
-        last_run_at=row[3],
+        last_run_at=row[2],
     )
 
 

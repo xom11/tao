@@ -7,7 +7,6 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/my-subnets", label: "My Subnets" },
   { href: "/subnets", label: "All Subnets" },
   { href: "/balances", label: "Balances" },
 ];

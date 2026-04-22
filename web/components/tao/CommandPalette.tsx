@@ -13,7 +13,6 @@ const SHORTCUTS = [
   { keys: ["?"], description: "Show all shortcuts" },
   { keys: ["G", "D"], description: "Go to Dashboard" },
   { keys: ["G", "S"], description: "Go to All Subnets" },
-  { keys: ["G", "M"], description: "Go to My Subnets" },
   { keys: ["G", "B"], description: "Go to Balances" },
 ];
 
@@ -65,7 +64,6 @@ export function CommandPalette() {
         const routes: Record<string, string> = {
           d: "/dashboard",
           s: "/subnets",
-          m: "/my-subnets",
           b: "/balances",
         };
         const route = routes[e.key.toLowerCase()];

@@ -1,7 +1,6 @@
 export interface DashboardStats {
   runs_24h: number;
   errors_24h: number;
-  my_subnets_count: number;
   last_run_at: string | null;
 }
 
@@ -28,7 +27,6 @@ export interface SubnetOverview {
   miner_earning_count: number | null;
   register_fee_tao: number | null;
   collected_at: string;
-  is_my_subnet: boolean;
 }
 
 export interface SubnetHistoryPoint {
@@ -55,7 +53,6 @@ export interface SubnetDetail extends SubnetOverview {
   discord: string | null;
   logo_url: string | null;
   subnet_contact: string | null;
-  notes: string | null;
 }
 
 export interface Neuron {
@@ -72,19 +69,6 @@ export interface Neuron {
   active: boolean | null;
   role: string | null;
   collected_at: string;
-}
-
-export interface MySubnet {
-  netuid: number;
-  coldkey: string | null;
-  hotkey: string | null;
-  notes: string | null;
-  updated_at: string | null;
-  stake_tao: number | null;
-  incentive: number | null;
-  emission_tao: number | null;
-  active: boolean | null;
-  subnet_emission_value: number | null;
 }
 
 export interface Balance {

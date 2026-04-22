@@ -9,16 +9,9 @@
 - **FastAPI** + uvicorn — REST API backend (port 8000)
 - **Next.js 14** + Tailwind + shadcn/ui + recharts — web frontend (port 3000)
 
-## Triết lý theo dõi (2 tầng)
-
-### Tầng 1 — Basic: tất cả subnets
+## Triết lý theo dõi
 Thu thập metagraph cơ bản cho **toàn bộ** subnets trên mạng, tự động mỗi tempo (~72 phút).
 Các trường: uid, hotkey, coldkey, stake, validator_trust, consensus, incentive, dividends, emission, active, role, daily_tao.
-
-### Tầng 2 — Detailed: subnets tham gia
-Subnets mà người dùng tham gia (validator/miner), quản lý qua bảng `my_subnets`.
-- Thêm/sửa/xoá qua web UI (`/my-subnets`) hoặc script CLI
-- Hiển thị stake, incentive, emission realtime từ metagraph mới nhất
 
 ## Cấu trúc project
 ```
@@ -28,7 +21,7 @@ tao/
 │   ├── db/
 │   │   ├── connection.py  # Connection pool (psycopg_pool)
 │   │   ├── schema.sql     # DDL — chạy qua scripts/init_db.py
-│   │   └── queries/       # balance.py, subnet.py, metagraph.py, runs.py, my_subnets.py
+│   │   └── queries/       # balance.py, subnet.py, metagraph.py, runs.py
 │   ├── collectors/
 │   │   ├── base.py        # BaseCollector abstract: collect() → save() → log run
 │   │   ├── subnet_overview.py   # subnet name, symbol, emission, alpha price, identity
@@ -42,7 +35,7 @@ tao/
 │   ├── models.py          # Pydantic response schemas
 │   └── routers/           # dashboard.py, subnets.py, metagraph.py, balances.py
 ├── web/               # Next.js 14 frontend
-│   ├── app/               # dashboard, my-subnets, subnets/[netuid], balances pages
+│   ├── app/               # dashboard, subnets/[netuid], balances pages
 │   ├── components/
 │   │   ├── tao/
 │   │   │   ├── StatsCards.tsx
@@ -51,15 +44,13 @@ tao/
 │   │   │   ├── NeuronTable.tsx        # sortable, click-filter validator/miner
 │   │   │   ├── MinerChart.tsx         # scatter plot daily TAO theo coldkey
 │   │   │   ├── SubnetHistoryChart.tsx # line chart emission % + alpha price
-│   │   │   ├── MySubnetsManager.tsx   # CRUD UI cho my_subnets
 │   │   │   ├── ThemeProvider.tsx
 │   │   │   └── ThemeToggle.tsx
 │   │   └── ui/            # badge, button, card, table, tabs, dialog, input, label, textarea
 │   └── lib/               # api.ts, types.ts
 └── scripts/
     ├── init_db.py         # Tạo schema lần đầu
-    ├── backfill.py        # Chạy collector thủ công
-    └── my_subnet.py       # Quản lý my_subnets qua CLI
+    └── backfill.py        # Chạy collector thủ công
 ```
 
 ## Lệnh hay dùng (dùng `just` — xem `justfile`)
@@ -79,13 +70,6 @@ just dev-scheduler                                   # chạy scheduler (tự đ
 # Web interface (dùng tmux hoặc 2 terminal)
 just dev-api                                         # API backend → http://localhost:8000
 just dev-web                                         # Frontend → http://localhost:3000
-
-# Quản lý my_subnets qua CLI (hoặc dùng web UI tại /my-subnets)
-uv run python scripts/my_subnet.py list
-uv run python scripts/my_subnet.py add --netuid 118 --coldkey 5Abc... --hotkey 5Def... --notes "..."
-uv run python scripts/my_subnet.py edit --netuid 118 --notes "# New notes"
-uv run python scripts/my_subnet.py show --netuid 118
-uv run python scripts/my_subnet.py remove --netuid 118
 ```
 
 ## Config `.env`
@@ -103,16 +87,10 @@ TAOSTATS_API_KEY=...
 | `metagraph_snapshots` | append-only | Neuron data từng subnet | ~72 phút |
 | `coldkey_balances` | append-only | Balance coldkeys | 24 giờ |
 | `collection_runs` | append-only | Audit log mỗi job | Tự động |
-| `my_subnets` | **editable** | Subnets đang tham gia | Thủ công |
 
 ### Các cột quan trọng trong `metagraph_snapshots`
 - `role` — `'validator'` nếu `validator_trust > 0`, ngược lại `'miner'`
 - `daily_tao` — `(emission_tao / tempo) * 7200` — tính lúc collect, lưu vào DB
-
-### Bảng `my_subnets`
-- `netuid` — PK
-- `coldkey`, `hotkey` — keys của mình trong subnet này
-- `notes` — markdown tự do
 
 ## Web Interface
 
@@ -121,22 +99,18 @@ TAOSTATS_API_KEY=...
 - Import `tao` package qua `src/` (đã có trong uv path), `api/` module import trực tiếp
 - Reuse pool từ `tao.db.connection.get_pool()` — không tạo pool riêng
 - Mỗi router dùng `pool = get_pool()` ở đầu handler (pool đã khởi tạo qua lifespan)
-- CORS cho phép `*` (all origins)
+- CORS: cho phép origins từ env var `CORS_ORIGINS` + regex `*.vercel.app`
 
 ### API endpoints
 
 | Method | Path | Mô tả |
 |---|---|---|
-| GET | `/api/dashboard/stats` | Runs 24h, errors, my_subnets count, last run |
+| GET | `/api/dashboard/stats` | Runs 24h, errors, last run |
 | GET | `/api/dashboard/runs` | 50 collection runs gần nhất |
 | GET | `/api/subnets` | Tất cả subnets + `miner_daily_tao` tổng |
 | GET | `/api/subnets/{netuid}` | Chi tiết 1 subnet |
 | GET | `/api/subnets/{netuid}/neurons` | Top 50 neurons theo stake |
 | GET | `/api/subnets/{netuid}/history?days=90` | Time-series emission % + alpha price |
-| GET | `/api/my-subnets` | My subnets + metagraph stats |
-| PUT | `/api/my-subnets/{netuid}` | Thêm hoặc cập nhật (upsert) |
-| DELETE | `/api/my-subnets/{netuid}` | Xoá |
-| PATCH | `/api/my-subnets/{netuid}/notes` | Chỉ cập nhật notes |
 | GET | `/api/balances` | Balance per coldkey |
 
 ### Frontend (`web/`)
@@ -166,48 +140,35 @@ TAOSTATS_API_KEY=...
 - **daily_tao**: `(emission_tao / tempo) * 7200` — tính và lưu trong collector, không tính lại ở frontend (frontend fallback nếu null).
 - **emission_value**: `float(s.tao_in_emission) * 2` — nhân đôi vì dTAO emit cả TAO side + alpha side.
 
-## Deployment (Dokku + Cloudflare Tunnel)
+## Deployment
 
-### Kiến trúc
-```
-Browser → Cloudflare CDN → Cloudflare Tunnel → cloudflared (local)
-                                                    ↓
-                                      ┌─ port 80   → Dokku nginx → tao-web (Next.js :3000)
-                                      └─ port 8000 → Dokku nginx → tao-api (FastAPI :8000)
-```
+### Frontend: Vercel
+- Auto-deploy khi push lên GitHub
+- Domain: `tao-xom11.vercel.app`
+- Env var: `NEXT_PUBLIC_API_URL` (build-time, set trên Vercel dashboard)
+- Config: `vercel.json` → `rootDirectory: "web"`
 
-### Dokku apps
-| App | Dockerfile | Port | Domain |
-|-----|-----------|------|--------|
-| `tao-web` | `Dockerfile.web` | 3000 (nginx proxy :80) | `tao.lenamkhanh.xyz` |
-| `tao-api` | `Dockerfile.api` | 8000 (nginx proxy :8000) | `tao-api.lenamkhanh.xyz` |
-| `tao-db` | — (postgres plugin) | 5432 | — |
-
-### Cloudflare Tunnel
-- Tunnel name: `tao-server`
-- Config: `~/.cloudflared/config.yml`
-- Service: `systemctl --user restart cloudflared`
-- Ingress: `tao.lenamkhanh.xyz` → `:80`, `tao-api.lenamkhanh.xyz` → `:8000`
+### Backend: Dokku (server rog)
+- API + Scheduler chạy trên Dokku
+- Domain: `tao-api.lenamkhanh.xyz` (qua Cloudflare Tunnel)
+- `tao-api` có 2 process: `web` (FastAPI) + `scheduler` (APScheduler)
+- DB: Dokku postgres plugin, link qua `DATABASE_URL` env var
 
 ### Deploy commands
 ```bash
 just deploy-api                    # git push dokku-api main
-just deploy-web                    # git push dokku-web main
+just deploy-web                    # vercel --prod
 just deploy                        # cả hai
 
-# Logs & management
+# Logs
 just logs-api                      # dokku logs tao-api -t
-just logs-web                      # dokku logs tao-web -t
 just logs-scheduler                # dokku logs tao-api -p scheduler -t
-just ps                            # ps:report cả hai app
-just restart-api                   # dokku ps:restart tao-api
-just restart-web                   # dokku ps:restart tao-web
-```
+just logs-web                      # vercel logs --follow
 
-### Lưu ý deploy
-- `tao-api` có 2 process: `web` (FastAPI) + `scheduler` (APScheduler) — cấu hình trong `Procfile` + `DOKKU_SCALE`
-- `NEXT_PUBLIC_API_URL` là build-time env — cần `dokku config:set tao-web NEXT_PUBLIC_API_URL=...` rồi rebuild
-- DB dùng Dokku postgres plugin, link qua `DATABASE_URL` env var tự động
+# Management
+just ps                            # dokku ps:report tao-api
+just restart-api                   # dokku ps:restart tao-api
+```
 
 ## Thêm collector mới
 1. Tạo file `src/tao/collectors/ten_collector.py`, kế thừa `BaseCollector`

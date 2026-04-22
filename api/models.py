@@ -5,7 +5,6 @@ from pydantic import BaseModel
 class DashboardStats(BaseModel):
     runs_24h: int
     errors_24h: int
-    my_subnets_count: int
     last_run_at: datetime | None
 
 
@@ -32,7 +31,6 @@ class SubnetOverview(BaseModel):
     miner_earning_count: int | None
     register_fee_tao: float | None
     collected_at: datetime
-    is_my_subnet: bool
 
 
 class SubnetHistoryPoint(BaseModel):
@@ -79,8 +77,6 @@ class SubnetDetail(BaseModel):
     logo_url: str | None
     subnet_contact: str | None
     collected_at: datetime
-    is_my_subnet: bool
-    notes: str | None
 
 
 class Neuron(BaseModel):
@@ -97,29 +93,6 @@ class Neuron(BaseModel):
     active: bool | None
     role: str | None
     collected_at: datetime
-
-
-class MySubnet(BaseModel):
-    netuid: int
-    coldkey: str | None
-    hotkey: str | None
-    notes: str | None
-    updated_at: datetime | None
-    stake_tao: float | None
-    incentive: float | None
-    emission_tao: float | None
-    active: bool | None
-    subnet_emission_value: float | None
-
-
-class MySubnetUpsert(BaseModel):
-    coldkey: str | None = None
-    hotkey: str | None = None
-    notes: str | None = None
-
-
-class NotesUpdate(BaseModel):
-    notes: str
 
 
 class MinerHistoryPoint(BaseModel):

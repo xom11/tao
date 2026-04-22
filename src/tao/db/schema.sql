@@ -1,6 +1,5 @@
 -- Bittensor Monitor — PostgreSQL Schema
 -- Monitoring tables: append-only, chỉ INSERT, không UPDATE/DELETE
--- Config tables: editable (my_subnets)
 
 CREATE TABLE IF NOT EXISTS coldkey_balances (
     id          BIGSERIAL PRIMARY KEY,
@@ -82,17 +81,3 @@ CREATE INDEX IF NOT EXISTS idx_subnet_overview_collected
 CREATE INDEX IF NOT EXISTS idx_collection_runs_job
     ON collection_runs (job_name, started_at DESC);
 
--- ============================================================
--- Tầng 2: Config table — subnets tôi tham gia (EDITABLE)
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS my_subnets (
-    netuid      INTEGER PRIMARY KEY,
-    coldkey     TEXT,           -- coldkey tôi dùng trong subnet này
-    hotkey      TEXT,           -- hotkey tương ứng
-    notes       TEXT,           -- markdown tự do: mô tả, link, tuỳ chỉnh
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- updated_at được set thủ công trong Python (tránh plpgsql dependency)

@@ -3,10 +3,8 @@ import { NeuronTable } from "@/components/tao/NeuronTable";
 import { MinerChart } from "@/components/tao/MinerChart";
 import { SubnetHistoryChart } from "@/components/tao/SubnetHistoryChart";
 import { MinerHistoryChart } from "@/components/tao/MinerHistoryChart";
-import { SubnetNotes } from "@/components/tao/SubnetNotes";
 import { TabsWithUrl } from "@/components/tao/TabsWithUrl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -88,7 +86,6 @@ export default async function SubnetDetailPage({
               <span className="text-muted-foreground font-normal text-lg">{subnet.symbol}</span>
             )}
             <span className="text-muted-foreground text-sm">#{netuid}</span>
-            {subnet.is_my_subnet && <Badge>⭐ mine</Badge>}
           </div>
           {subnet.description && (
             <p className="text-sm text-muted-foreground mt-1">{subnet.description}</p>
@@ -165,8 +162,6 @@ export default async function SubnetDetailPage({
           </div>
         </Card>
       </div>
-
-      <SubnetNotes netuid={netuid} initialNotes={subnet.notes ?? null} />
 
       <TabsWithUrl defaultTab={searchParams?.tab ?? "metagraph"}>
         <TabsList>
