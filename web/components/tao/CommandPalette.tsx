@@ -11,7 +11,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const SHORTCUTS = [
   { keys: ["Ctrl", "K"], description: "Search & go to subnet" },
   { keys: ["?"], description: "Show all shortcuts" },
-  { keys: ["G", "D"], description: "Go to Dashboard" },
+  { keys: ["G", "D"], description: "Go to Home" },
   { keys: ["G", "S"], description: "Go to All Subnets" },
   { keys: ["G", "B"], description: "Go to Balances" },
 ];
@@ -62,7 +62,7 @@ export function CommandPalette() {
         gPressed = false;
         clearTimeout(gTimer);
         const routes: Record<string, string> = {
-          d: "/dashboard",
+          d: "/",
           s: "/subnets",
           b: "/balances",
         };

@@ -2,6 +2,14 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class SystemStatus(BaseModel):
+    db_connected: bool
+    network: str
+    total_subnets: int
+    total_neurons: int
+    scheduler_running: bool
+
+
 class DashboardStats(BaseModel):
     runs_24h: int
     errors_24h: int

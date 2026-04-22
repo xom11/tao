@@ -27,3 +27,4 @@ dist/
 # Web (handled by web/.gitignore but kept here for clarity)
 web/node_modules/
 web/.next/
+.vercel

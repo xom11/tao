@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Response
 from tao.db.connection import get_pool
-from api.models import DashboardStats, CollectionRun
+from tao.config import settings
+from api.models import DashboardStats, CollectionRun, SystemStatus
 from api.cache import cached
 from api.middleware import limiter
 
@@ -58,6 +59,51 @@ def _fetch_runs():
         )
         for r in rows
     ]
+
+
+@cached()
+def _fetch_status():
+    pool = get_pool()
+    try:
+        with pool.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT
+                    (SELECT COUNT(DISTINCT netuid) FROM subnet_overview_snapshots
+                     WHERE collected_at = (SELECT MAX(collected_at) FROM subnet_overview_snapshots)) AS total_subnets,
+                    (SELECT COUNT(*) FROM metagraph_snapshots
+                     WHERE collected_at = (SELECT MAX(collected_at) FROM metagraph_snapshots)) AS total_neurons,
+                    (SELECT MAX(finished_at) FROM collection_runs WHERE status = 'success') AS last_success
+                """
+            ).fetchone()
+        from datetime import datetime, timezone, timedelta
+        last_success = row[2]
+        scheduler_ok = (
+            last_success is not None
+            and (datetime.now(timezone.utc) - last_success) < timedelta(hours=3)
+        )
+        return SystemStatus(
+            db_connected=True,
+            network=settings.bt_network,
+            total_subnets=row[0] or 0,
+            total_neurons=row[1] or 0,
+            scheduler_running=scheduler_ok,
+        )
+    except Exception:
+        return SystemStatus(
+            db_connected=False,
+            network=settings.bt_network,
+            total_subnets=0,
+            total_neurons=0,
+            scheduler_running=False,
+        )
+
+
+@router.get("/status", response_model=SystemStatus)
+@limiter.limit("30/minute")
+def get_status(request: Request, response: Response):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=600"
+    return _fetch_status()
 
 
 @router.get("/runs", response_model=list[CollectionRun])

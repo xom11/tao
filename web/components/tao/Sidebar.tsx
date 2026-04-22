@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./ThemeToggle";
 
 const navLinks = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/", label: "Home" },
   { href: "/subnets", label: "All Subnets" },
   { href: "/balances", label: "Balances" },
 ];

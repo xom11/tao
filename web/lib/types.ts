@@ -1,3 +1,11 @@
+export interface SystemStatus {
+  db_connected: boolean;
+  network: string;
+  total_subnets: number;
+  total_neurons: number;
+  scheduler_running: boolean;
+}
+
 export interface DashboardStats {
   runs_24h: number;
   errors_24h: number;

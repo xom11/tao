@@ -1,4 +1,5 @@
 import type {
+  SystemStatus,
   DashboardStats,
   CollectionRun,
   SubnetOverview,
@@ -18,6 +19,7 @@ async function get<T>(path: string, revalidate = 30): Promise<T> {
 }
 
 export const api = {
+  systemStatus: () => get<SystemStatus>("/api/dashboard/status"),
   dashboardStats: () => get<DashboardStats>("/api/dashboard/stats"),
   dashboardRuns: () => get<CollectionRun[]>("/api/dashboard/runs"),
   subnets: () => get<SubnetOverview[]>("/api/subnets"),
