@@ -35,32 +35,28 @@ deploy-api:
     git push dokku-api main
 
 deploy-web:
-    git push dokku-web main
+    vercel --prod
 
 deploy: deploy-api deploy-web
 
-# === Dokku Logs ===
+# === Logs ===
 
 logs-api:
     dokku logs tao-api -t
 
-logs-web:
-    dokku logs tao-web -t
-
 logs-scheduler:
     dokku logs tao-api -p scheduler -t
 
-# === Dokku Management ===
+logs-web:
+    vercel logs --follow
+
+# === Management ===
 
 ps:
     dokku ps:report tao-api
-    dokku ps:report tao-web
 
 restart-api:
     dokku ps:restart tao-api
-
-restart-web:
-    dokku ps:restart tao-web
 
 # === Database ===
 
