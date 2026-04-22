@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from tao.config import settings
 from tao.db.connection import get_pool, close_pool
 from api.routers import dashboard, subnets, metagraph, balances
 
@@ -18,9 +19,9 @@ app = FastAPI(title="Tao Monitor API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.allowed_origins,
+    allow_methods=["GET", "PUT", "DELETE", "PATCH"],
+    allow_headers=["Content-Type"],
 )
 
 app.include_router(dashboard.router, prefix="/api/dashboard")

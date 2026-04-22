@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from tao.db.connection import get_pool
 from tao.db.queries import my_subnets as my_subnets_q
 from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MinerHistoryPoint, MySubnet, MySubnetUpsert, NotesUpdate, blocks_to_human
@@ -160,7 +160,7 @@ def list_my_subnets():
 
 
 @router.get("/subnets/{netuid}/history", response_model=list[SubnetHistoryPoint])
-def get_subnet_history(netuid: int, days: int = 90):
+def get_subnet_history(netuid: int, days: int = Query(90, ge=0, le=365)):
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
@@ -185,7 +185,7 @@ def get_subnet_history(netuid: int, days: int = 90):
 
 
 @router.get("/subnets/{netuid}/miner-history", response_model=list[MinerHistoryPoint])
-def get_miner_history(netuid: int, days: int = 90):
+def get_miner_history(netuid: int, days: int = Query(90, ge=0, le=365)):
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
