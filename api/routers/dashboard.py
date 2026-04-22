@@ -1,12 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Response
 from tao.db.connection import get_pool
 from api.models import DashboardStats, CollectionRun
+from api.cache import cached
+from api.middleware import limiter
 
 router = APIRouter()
 
 
-@router.get("/stats", response_model=DashboardStats)
-def get_stats():
+@cached()
+def _fetch_stats():
     pool = get_pool()
     with pool.connection() as conn:
         row = conn.execute(
@@ -25,8 +27,15 @@ def get_stats():
     )
 
 
-@router.get("/runs", response_model=list[CollectionRun])
-def get_runs():
+@router.get("/stats", response_model=DashboardStats)
+@limiter.limit("30/minute")
+def get_stats(request: Request, response: Response):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=600"
+    return _fetch_stats()
+
+
+@cached()
+def _fetch_runs():
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
@@ -49,3 +58,10 @@ def get_runs():
         )
         for r in rows
     ]
+
+
+@router.get("/runs", response_model=list[CollectionRun])
+@limiter.limit("30/minute")
+def get_runs(request: Request, response: Response):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=600"
+    return _fetch_runs()

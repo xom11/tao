@@ -1,12 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Response
 from tao.db.connection import get_pool
 from api.models import Neuron
+from api.cache import cached
+from api.middleware import limiter
 
 router = APIRouter()
 
 
-@router.get("/subnets/{netuid}/neurons", response_model=list[Neuron])
-def list_neurons(netuid: int):
+@cached()
+def _fetch_neurons(netuid: int):
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
@@ -19,6 +21,7 @@ def list_neurons(netuid: int):
                   SELECT MAX(collected_at) FROM metagraph_snapshots WHERE netuid = %s
               )
             ORDER BY stake_tao DESC NULLS LAST
+            LIMIT 1024
             """,
             (netuid, netuid),
         ).fetchall()
@@ -40,3 +43,10 @@ def list_neurons(netuid: int):
         )
         for r in rows
     ]
+
+
+@router.get("/subnets/{netuid}/neurons", response_model=list[Neuron])
+@limiter.limit("20/minute")
+def list_neurons(request: Request, response: Response, netuid: int):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=600"
+    return _fetch_neurons(netuid)

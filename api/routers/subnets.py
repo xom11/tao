@@ -1,12 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from tao.db.connection import get_pool
 from api.models import SubnetOverview, SubnetDetail, SubnetHistoryPoint, MinerHistoryPoint, blocks_to_human
+from api.cache import cached
+from api.middleware import limiter
 
 router = APIRouter()
 
 
-@router.get("/subnets", response_model=list[SubnetOverview])
-def list_subnets():
+@cached(heavy=True)
+def _fetch_subnets():
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
@@ -66,8 +68,15 @@ def list_subnets():
     ]
 
 
-@router.get("/subnets/{netuid}", response_model=SubnetDetail)
-def get_subnet(netuid: int):
+@router.get("/subnets", response_model=list[SubnetOverview])
+@limiter.limit("10/minute")
+def list_subnets(request: Request, response: Response):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=1800"
+    return _fetch_subnets()
+
+
+@cached()
+def _fetch_subnet(netuid: int):
     pool = get_pool()
     with pool.connection() as conn:
         row = conn.execute(
@@ -86,7 +95,7 @@ def get_subnet(netuid: int):
             (netuid,),
         ).fetchone()
     if not row:
-        raise HTTPException(status_code=404, detail="Subnet not found")
+        return None
     return SubnetDetail(
         netuid=row[0],
         subnet_name=row[1],
@@ -110,8 +119,18 @@ def get_subnet(netuid: int):
     )
 
 
-@router.get("/subnets/{netuid}/history", response_model=list[SubnetHistoryPoint])
-def get_subnet_history(netuid: int, days: int = Query(90, ge=0, le=365)):
+@router.get("/subnets/{netuid}", response_model=SubnetDetail)
+@limiter.limit("30/minute")
+def get_subnet(request: Request, response: Response, netuid: int):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=600"
+    result = _fetch_subnet(netuid)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Subnet not found")
+    return result
+
+
+@cached(heavy=True)
+def _fetch_subnet_history(netuid: int, days: int):
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
@@ -119,10 +138,10 @@ def get_subnet_history(netuid: int, days: int = Query(90, ge=0, le=365)):
             SELECT collected_at, emission_value, alpha_price_tao, register_fee_tao
             FROM subnet_overview_snapshots
             WHERE netuid = %s
-              AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
+              AND collected_at >= NOW() - (%s || ' days')::INTERVAL
             ORDER BY collected_at ASC
             """,
-            (netuid, days, days),
+            (netuid, days),
         ).fetchall()
     return [
         SubnetHistoryPoint(
@@ -135,8 +154,15 @@ def get_subnet_history(netuid: int, days: int = Query(90, ge=0, le=365)):
     ]
 
 
-@router.get("/subnets/{netuid}/miner-history", response_model=list[MinerHistoryPoint])
-def get_miner_history(netuid: int, days: int = Query(90, ge=0, le=365)):
+@router.get("/subnets/{netuid}/history", response_model=list[SubnetHistoryPoint])
+@limiter.limit("10/minute")
+def get_subnet_history(request: Request, response: Response, netuid: int, days: int = Query(90, ge=1, le=365)):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=1800"
+    return _fetch_subnet_history(netuid, days)
+
+
+@cached(heavy=True)
+def _fetch_miner_history(netuid: int, days: int):
     pool = get_pool()
     with pool.connection() as conn:
         rows = conn.execute(
@@ -146,7 +172,7 @@ def get_miner_history(netuid: int, days: int = Query(90, ge=0, le=365)):
                     collected_at
                 FROM metagraph_snapshots
                 WHERE netuid = %s
-                  AND (%s = 0 OR collected_at >= NOW() - (%s || ' days')::INTERVAL)
+                  AND collected_at >= NOW() - (%s || ' days')::INTERVAL
                 ORDER BY collected_at::date, collected_at DESC
             )
             SELECT m.collected_at, m.uid, m.hotkey, m.daily_tao
@@ -157,7 +183,7 @@ def get_miner_history(netuid: int, days: int = Query(90, ge=0, le=365)):
               AND m.daily_tao IS NOT NULL
             ORDER BY m.collected_at ASC, m.uid ASC
             """,
-            (netuid, days, days, netuid),
+            (netuid, days, netuid),
         ).fetchall()
     return [
         MinerHistoryPoint(collected_at=r[0], uid=r[1], hotkey=r[2], daily_tao=r[3])
@@ -165,3 +191,8 @@ def get_miner_history(netuid: int, days: int = Query(90, ge=0, le=365)):
     ]
 
 
+@router.get("/subnets/{netuid}/miner-history", response_model=list[MinerHistoryPoint])
+@limiter.limit("10/minute")
+def get_miner_history(request: Request, response: Response, netuid: int, days: int = Query(90, ge=1, le=90)):
+    response.headers["Cache-Control"] = "public, max-age=600, s-maxage=1800"
+    return _fetch_miner_history(netuid, days)
