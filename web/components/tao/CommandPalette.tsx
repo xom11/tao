@@ -14,6 +14,7 @@ const SHORTCUTS = [
   { keys: ["G", "D"], description: "Go to Home" },
   { keys: ["G", "S"], description: "Go to All Subnets" },
   { keys: ["G", "B"], description: "Go to Balances" },
+  { keys: ["G", "O"], description: "Go to Docs" },
 ];
 
 export function CommandPalette() {
@@ -65,6 +66,7 @@ export function CommandPalette() {
           d: "/",
           s: "/subnets",
           b: "/balances",
+          o: "/docs",
         };
         const route = routes[e.key.toLowerCase()];
         if (route) {

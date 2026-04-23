@@ -9,6 +9,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/subnets", label: "All Subnets" },
   { href: "/balances", label: "Balances" },
+  { href: "/docs", label: "Docs" },
 ];
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {

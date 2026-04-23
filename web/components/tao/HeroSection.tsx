@@ -20,11 +20,11 @@ export function HeroSection() {
         </a>
         <span className="text-muted-foreground/40">|</span>
         <a
-          href="/api/docs"
+          href="/docs?tab=api"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <BookOpen className="h-4 w-4" />
-          <span>API Docs</span>
+          <span>Docs</span>
         </a>
       </div>
     </div>
